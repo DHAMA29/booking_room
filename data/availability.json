@@ -1,0 +1,31 @@
+{
+  "policy": {
+    "bookingDaysAhead": 14,
+    "minDurationHours": 1,
+    "maxDurationHours": 2,
+    "note": "Peminjaman dapat diajukan maksimal bookingDaysAhead hari ke depan, durasi minDurationHours..maxDurationHours jam."
+  },
+  "recurring": [
+    { "facilityId": "FAC-001", "weekday": 1, "hours": [12, 13], "note": "Jadwal kuliah tetap" },
+    { "facilityId": "FAC-001", "weekday": 3, "hours": [8, 9], "note": "Jadwal kuliah tetap" },
+    { "facilityId": "FAC-001", "weekday": 5, "hours": [14, 15], "note": "Rapat evaluasi dosen" },
+    { "facilityId": "FAC-002", "weekday": 2, "hours": [10, 11], "note": "Seminar rutin fakultas" },
+    { "facilityId": "FAC-002", "weekday": 4, "hours": [8, 9, 10, 11], "note": "Kelas MKWU" },
+    { "facilityId": "FAC-003", "weekday": 1, "hours": [9, 10], "note": "Praktikum listening" },
+    { "facilityId": "FAC-003", "weekday": 4, "hours": [9, 10], "note": "Praktikum listening" },
+    { "facilityId": "FAC-004", "weekday": 2, "hours": [13, 14], "note": "Praktikum pemrograman" },
+    { "facilityId": "FAC-004", "weekday": 5, "hours": [8, 9], "note": "Praktikum pemrograman" },
+    { "facilityId": "FAC-005", "weekday": 3, "hours": [13, 14, 15, 16], "note": "Rapat organisasi mahasiswa" },
+    { "facilityId": "FAC-006", "weekday": 6, "hours": [7, 8, 9, 10], "note": "Latihan rutin UKM basket" },
+    { "facilityId": "FAC-008", "weekday": 0, "hours": [7, 8, 9], "note": "Senam bersama warga kampus" },
+    { "facilityId": "FAC-009", "weekday": 4, "hours": [13, 14], "note": "Rapat senat fakultas" },
+    { "facilityId": "FAC-010", "weekday": 1, "hours": [8, 9], "note": "Bimbingan akademik" },
+    { "facilityId": "FAC-010", "weekday": 3, "hours": [10, 11], "note": "Kelas penalaran dasar" }
+  ],
+  "exceptions": [
+    { "facilityId": "*", "date": "2026-12-25", "hours": "all", "note": "Libur Nasional — Natal" },
+    { "facilityId": "*", "date": "2027-01-01", "hours": "all", "note": "Libur Nasional — Tahun Baru" },
+    { "facilityId": "FAC-002", "date": "2026-11-05", "hours": [8, 9, 10, 11], "note": "Dies Natalis fakultas" },
+    { "facilityId": "FAC-005", "date": "2026-11-02", "hours": "all", "note": "Perawatan sound system" }
+  ]
+}
