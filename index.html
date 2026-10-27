@@ -272,7 +272,7 @@
       <div class="page-head">
         <p class="eyebrow">Peminjaman Saya</p>
         <h1 id="bookings-title">Riwayat pengajuan peminjaman</h1>
-        <p class="lede">Daftar semua pengajuan peminjaman yang telah Anda buat pada perangkat ini. Status dapat berubah setelah ditinjau pengelola.</p>
+        <p class="lede">Daftar pengajuan peminjaman yang telah Anda buat. Status dapat berubah setelah ditinjau pengelola.</p>
       </div>
 
       <div id="bookingsList"></div>
@@ -292,12 +292,13 @@
       <p class="muted">
         <a href="ketentuan.html">Ketentuan Peminjaman</a> &middot;
         <a href="admin.html">Admin Panel</a> &middot;
-        Data awal: <code>data/*.json</code> &middot; Perubahan &amp; pengajuan: LocalStorage
+        <span id="dataModeBadge" class="mode-pill mode-local"><span class="dot"></span>Memuat&hellip;</span>
       </p>
     </div>
   </footer>
 
   <script src="assets/js/core.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/app.js"></script>
 </body>

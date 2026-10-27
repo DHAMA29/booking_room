@@ -102,7 +102,7 @@
           <h2 class="block-title">Pengajuan terbaru</h2>
           <div id="recentList"></div>
         </div>
-        <p class="muted small">Analitik dihitung dari data pengajuan (LocalStorage) di atas data awal <code>data/*.json</code>. Klik <em>Muat data contoh</em> pada kartu kosong untuk melihat tampilan analitik.</p>
+        <p class="muted small" id="dashFootNote">Analitik dihitung dari data pengajuan (LocalStorage) di atas data awal <code>data/*.json</code>. Klik <em>Muat data contoh</em> pada kartu kosong untuk melihat tampilan analitik.</p>
       </section>
 
       <!-- ============ TAB: PENGAJUAN ============ -->
@@ -150,6 +150,21 @@
           <span class="toolbar-spacer"></span>
           <button id="facResetBtn" class="btn-link" type="button">Reset ke data awal (JSON)</button>
         </div>
+
+        <!-- Panel status & sinkronisasi Firebase -->
+        <div id="fbPanel" class="fb-panel">
+          <div class="fb-status">
+            <span id="fbDot" class="fb-dot"></span>
+            <div class="fb-text">
+              <p class="fb-title">Firebase Realtime Database</p>
+              <p class="fb-meta" id="fbMeta">Memeriksa koneksi&hellip;</p>
+            </div>
+          </div>
+          <div class="fb-actions">
+            <button id="fbSeedBtn" class="btn-primary" type="button" disabled>Unggah data awal (Seed)</button>
+            <button id="fbReloadBtn" class="btn-ghost" type="button">Muat ulang</button>
+          </div>
+        </div>
         <div class="table-wrap">
           <table class="admin-table" id="facTable">
             <thead>
@@ -161,13 +176,14 @@
             <tbody></tbody>
           </table>
         </div>
-        <p class="muted small">Perubahan tersimpan di browser (LocalStorage) sebagai lapisan di atas data awal <code>data/facilities.json</code>. Tombol <em>Reset</em> mengembalikan ke isi JSON.</p>
+        <p class="muted small" id="facNote">Perubahan tersimpan di browser (LocalStorage) sebagai lapisan di atas data awal <code>data/facilities.json</code>. Tombol <em>Reset</em> mengembalikan ke isi JSON.</p>
       </section>
 
     </main>
   </div>
 
   <script src="assets/js/core.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/data.js"></script>
   <script src="assets/js/admin.js"></script>
 </body>

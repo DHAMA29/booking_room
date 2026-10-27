@@ -1,0 +1,368 @@
+{
+  "facilities": {
+    "FAC-001": {
+      "id": "FAC-001",
+      "name": "Ruang Multimedia",
+      "category": "Ruang Kelas",
+      "location": "Gedung Utama Lt. 2",
+      "capacity": 40,
+      "facilities": [
+        "Projector",
+        "AC",
+        "Wi-Fi"
+      ],
+      "status": "Available",
+      "description": "Ruang kelas multimedia untuk perkuliahan, presentasi, dan diskusi kelas. Dilengkapi proyektor, AC, dan Wi-Fi sehingga cocok untuk kegiatan belajar yang nyaman.",
+      "openHours": {
+        "start": "08:00",
+        "end": "16:00"
+      }
+    },
+    "FAC-002": {
+      "id": "FAC-002",
+      "name": "Aula Serbaguna",
+      "category": "Aula",
+      "location": "Gedung Utama Lt. 1",
+      "capacity": 150,
+      "facilities": [
+        "Stage",
+        "Sound System",
+        "AC"
+      ],
+      "status": "Available",
+      "description": "Aula serbaguna di lantai 1 gedung utama dengan panggung dan sound system. Cocok untuk seminar, acara akademik, dan kegiatan organisasi skala menengah.",
+      "openHours": {
+        "start": "08:00",
+        "end": "16:00"
+      }
+    },
+    "FAC-003": {
+      "id": "FAC-003",
+      "name": "Laboratorium Bahasa",
+      "category": "Laboratorium",
+      "location": "Gedung Teknologi Lt. 3",
+      "capacity": 30,
+      "facilities": [
+        "PC",
+        "Headset",
+        "AC"
+      ],
+      "status": "Available",
+      "description": "Laboratorium bahasa dengan PC dan headset di setiap meja untuk praktik listening dan speaking. Digunakan untuk praktikum bahasa dan ujian keterampilan.",
+      "openHours": {
+        "start": "09:00",
+        "end": "15:00"
+      }
+    },
+    "FAC-004": {
+      "id": "FAC-004",
+      "name": "Laboratorium Komputer",
+      "category": "Laboratorium",
+      "location": "Gedung Teknologi Lt. 2",
+      "capacity": 32,
+      "facilities": [
+        "PC",
+        "Projector",
+        "AC"
+      ],
+      "status": "Available",
+      "description": "Laboratorium komputer dengan 32 unit PC terpasang untuk praktikum pemrograman dan pelatihan software. Tersedia proyektor untuk pendampingan.",
+      "openHours": {
+        "start": "08:00",
+        "end": "16:00"
+      }
+    },
+    "FAC-005": {
+      "id": "FAC-005",
+      "name": "Aula Mahasiswa",
+      "category": "Aula",
+      "location": "Gedung Serbaguna Lt. 1",
+      "capacity": 120,
+      "facilities": [
+        "Stage",
+        "Sound System",
+        "AC"
+      ],
+      "status": "Limited",
+      "description": "Aula mahasiswa dengan panggung dan sound system, sering digunakan untuk acara besar kemahasiswaan. Status Terbatas: pengajuan akan ditinjau lebih ketat oleh pengelola.",
+      "openHours": {
+        "start": "10:00",
+        "end": "18:00"
+      }
+    },
+    "FAC-006": {
+      "id": "FAC-006",
+      "name": "Lapangan Basket",
+      "category": "Olahraga",
+      "location": "Gedung Olahraga Lt. 1",
+      "capacity": 200,
+      "facilities": [
+        "Tribune",
+        "Night Lighting"
+      ],
+      "status": "Available",
+      "description": "Lapangan basket standar dengan tribune penonton dan pencahayaan malam. Digunakan untuk latihan, pertandingan, dan kegiatan olahraga fakultas.",
+      "openHours": {
+        "start": "07:00",
+        "end": "17:00"
+      }
+    },
+    "FAC-007": {
+      "id": "FAC-007",
+      "name": "Studio Kreatif",
+      "category": "Studio",
+      "location": "Pusat Mahasiswa Lt. 3",
+      "capacity": 16,
+      "facilities": [
+        "Musical Instruments",
+        "AC",
+        "Soundproof"
+      ],
+      "status": "Unavailable",
+      "description": "Studio kreatif bermusik untuk latihan band dan kegiatan seni mahasiswa. Sedang dalam perbaikan perangkat sehingga belum dapat dipinjam.",
+      "openHours": {
+        "start": "10:00",
+        "end": "18:00"
+      }
+    },
+    "FAC-008": {
+      "id": "FAC-008",
+      "name": "Lapangan Multifungsi",
+      "category": "Olahraga",
+      "location": "Area Olahraga Luar Ruang",
+      "capacity": 80,
+      "facilities": [
+        "Tribune",
+        "Lighting"
+      ],
+      "status": "Available",
+      "description": "Lapangan multifungsi outdoor untuk olahraga, senam, dan kegiatan kemahasiswaan di luar ruang. Tersedia tribune dan pencahayaan.",
+      "openHours": {
+        "start": "07:00",
+        "end": "17:00"
+      }
+    },
+    "FAC-009": {
+      "id": "FAC-009",
+      "name": "Auditorium Utama",
+      "category": "Aula",
+      "location": "Gedung Pusat Lt. 1",
+      "capacity": 500,
+      "facilities": [
+        "Stage",
+        "Sound System",
+        "AC",
+        "Projector",
+        "LED Screen"
+      ],
+      "status": "Available",
+      "description": "Auditorium utama kampus berkapasitas 500 kursi dengan panggung besar, sound system profesional, dan layar LED. Digunakan untuk acara berskala fakultas dan universitas seperti wisuda, konferensi, dan seminar nasional.",
+      "openHours": {
+        "start": "08:00",
+        "end": "16:00"
+      }
+    },
+    "FAC-010": {
+      "id": "FAC-010",
+      "name": "Ruang Seminar",
+      "category": "Ruang Kelas",
+      "location": "Gedung Utama Lt. 3",
+      "capacity": 60,
+      "facilities": [
+        "Projector",
+        "AC",
+        "Wi-Fi",
+        "Whiteboard"
+      ],
+      "status": "Available",
+      "description": "Ruang seminar berkapasitas 60 orang dengan kursi dapat disusun ulang. Cocok untuk seminar kecil, bimbingan akademik, diskusi kelompok, dan pertemuan organisasi.",
+      "openHours": {
+        "start": "08:00",
+        "end": "16:00"
+      }
+    }
+  },
+  "availability": {
+    "policy": {
+      "bookingDaysAhead": 14,
+      "minDurationHours": 1,
+      "maxDurationHours": 2,
+      "note": "Peminjaman dapat diajukan maksimal bookingDaysAhead hari ke depan, durasi minDurationHours..maxDurationHours jam."
+    },
+    "recurring": [
+      {
+        "facilityId": "FAC-001",
+        "weekday": 1,
+        "hours": [
+          12,
+          13
+        ],
+        "note": "Jadwal kuliah tetap"
+      },
+      {
+        "facilityId": "FAC-001",
+        "weekday": 3,
+        "hours": [
+          8,
+          9
+        ],
+        "note": "Jadwal kuliah tetap"
+      },
+      {
+        "facilityId": "FAC-001",
+        "weekday": 5,
+        "hours": [
+          14,
+          15
+        ],
+        "note": "Rapat evaluasi dosen"
+      },
+      {
+        "facilityId": "FAC-002",
+        "weekday": 2,
+        "hours": [
+          10,
+          11
+        ],
+        "note": "Seminar rutin fakultas"
+      },
+      {
+        "facilityId": "FAC-002",
+        "weekday": 4,
+        "hours": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "note": "Kelas MKWU"
+      },
+      {
+        "facilityId": "FAC-003",
+        "weekday": 1,
+        "hours": [
+          9,
+          10
+        ],
+        "note": "Praktikum listening"
+      },
+      {
+        "facilityId": "FAC-003",
+        "weekday": 4,
+        "hours": [
+          9,
+          10
+        ],
+        "note": "Praktikum listening"
+      },
+      {
+        "facilityId": "FAC-004",
+        "weekday": 2,
+        "hours": [
+          13,
+          14
+        ],
+        "note": "Praktikum pemrograman"
+      },
+      {
+        "facilityId": "FAC-004",
+        "weekday": 5,
+        "hours": [
+          8,
+          9
+        ],
+        "note": "Praktikum pemrograman"
+      },
+      {
+        "facilityId": "FAC-005",
+        "weekday": 3,
+        "hours": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "note": "Rapat organisasi mahasiswa"
+      },
+      {
+        "facilityId": "FAC-006",
+        "weekday": 6,
+        "hours": [
+          7,
+          8,
+          9,
+          10
+        ],
+        "note": "Latihan rutin UKM basket"
+      },
+      {
+        "facilityId": "FAC-008",
+        "weekday": 0,
+        "hours": [
+          7,
+          8,
+          9
+        ],
+        "note": "Senam bersama warga kampus"
+      },
+      {
+        "facilityId": "FAC-009",
+        "weekday": 4,
+        "hours": [
+          13,
+          14
+        ],
+        "note": "Rapat senat fakultas"
+      },
+      {
+        "facilityId": "FAC-010",
+        "weekday": 1,
+        "hours": [
+          8,
+          9
+        ],
+        "note": "Bimbingan akademik"
+      },
+      {
+        "facilityId": "FAC-010",
+        "weekday": 3,
+        "hours": [
+          10,
+          11
+        ],
+        "note": "Kelas penalaran dasar"
+      }
+    ],
+    "exceptions": [
+      {
+        "facilityId": "*",
+        "date": "2026-12-25",
+        "hours": "all",
+        "note": "Libur Nasional — Natal"
+      },
+      {
+        "facilityId": "*",
+        "date": "2027-01-01",
+        "hours": "all",
+        "note": "Libur Nasional — Tahun Baru"
+      },
+      {
+        "facilityId": "FAC-002",
+        "date": "2026-11-05",
+        "hours": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "note": "Dies Natalis fakultas"
+      },
+      {
+        "facilityId": "FAC-005",
+        "date": "2026-11-02",
+        "hours": "all",
+        "note": "Perawatan sound system"
+      }
+    ]
+  }
+}

@@ -190,6 +190,25 @@
 .dg-label { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
 .dg-value { font-size: 13.5px; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
 
+/* ===== Panel Firebase (tab Fasilitas) ===== */
+.fb-panel {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--bg-soft);
+  padding: 14px 18px; margin: 0 0 18px;
+}
+.fb-status { display: flex; align-items: flex-start; gap: 11px; min-width: 0; flex: 1; }
+.fb-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.fb-dot.ok { background: var(--success-2); box-shadow: 0 0 0 4px rgba(22, 163, 74, .16); }
+.fb-dot.warn { background: var(--warning-2); box-shadow: 0 0 0 4px rgba(217, 119, 6, .16); }
+.fb-dot.bad { background: var(--danger-2); box-shadow: 0 0 0 4px rgba(220, 38, 38, .16); }
+.fb-text { min-width: 0; }
+.fb-title { margin: 0 0 2px; font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+.fb-meta { margin: 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.55; overflow-wrap: anywhere; }
+.fb-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.fb-actions .btn-primary, .fb-actions .btn-ghost { padding: 9px 16px; font-size: 13px; }
+
 /* ===== Responsive ===== */
 @media (max-width: 980px) {
   .chart-grid { grid-template-columns: 1fr; }

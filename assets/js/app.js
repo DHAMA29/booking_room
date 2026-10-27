@@ -41,9 +41,29 @@
   }
 
   function updateBookingBadge() {
-    const n = CFB.data.getBookings().length;
+    const n = CFB.data.getMyBookings().length;
     const badge = $('#bookingBadge');
     if (n > 0) { badge.textContent = n; badge.hidden = false; } else badge.hidden = true;
+  }
+
+  /* Badge sumber data di footer (Firebase / mode lokal) */
+  function updateModeUI() {
+    const el = $('#dataModeBadge');
+    if (!el) return;
+    const st = CFB.data.fbStatus();
+    if (st.mode === 'firebase') {
+      el.className = 'mode-pill mode-fb';
+      el.innerHTML = '<span class="dot"></span>Firebase Realtime Database';
+      el.title = 'Data fasilitas & pengajuan tersinkron lintas perangkat.';
+    } else {
+      el.className = 'mode-pill mode-local';
+      el.innerHTML = '<span class="dot"></span>Mode Lokal (LocalStorage)';
+      el.title = st.reason === 'empty'
+        ? 'Firebase kosong — unggah data awal dari Admin Panel.'
+        : (st.reason === 'denied'
+          ? 'Firebase menolak akses — atur Rules (lihat README).'
+          : 'Firebase tidak aktif — data tersimpan di browser ini saja.');
+    }
   }
 
   function bookingRangeLabel(b) {
@@ -443,7 +463,7 @@
   }
 
   // ============ Submit ============
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     let valid = true;
@@ -508,12 +528,13 @@
       status: 'Pending',
       createdAt: new Date().toISOString()
     };
-    CFB.data.addBooking(booking);
-    state.lastBookingId = booking.id;
+    const saved = await CFB.data.addBooking(booking);
+    if (!saved) return; // toast error sudah ditampilkan data layer
+    state.lastBookingId = saved.id;
     updateBookingBadge();
-    renderSummary(booking);
+    renderSummary(saved);
     location.hash = '#/summary';
-    CFB.notify.success('Pengajuan berhasil dikirim', 'Nomor referensi: ' + booking.id);
+    CFB.notify.success('Pengajuan berhasil dikirim', 'Nomor referensi: ' + saved.id);
   }
 
   // ============ Summary ============
@@ -554,7 +575,7 @@
 
   // ============ Peminjaman Saya ============
   function renderBookings() {
-    const list = CFB.data.getBookings();
+    const list = CFB.data.getMyBookings();
     const wrap = $('#bookingsList');
     wrap.innerHTML = '';
     $('#bookingsEmpty').hidden = !!list.length;
@@ -595,9 +616,9 @@
       applyFilters();
       showPage('explore');
     } else if (hash === '/bookings') {
-      renderBookings();
+      refreshThenRender(() => { renderBookings(); });
     } else if (hash === '/schedule') {
-      state.facilityId ? renderSchedule() : goExplore();
+      refreshThenRender(() => { state.facilityId ? renderSchedule() : goExplore(); });
     } else if (hash === '/request') {
       (state.facilityId && state.date && state.startHour != null && state.duration)
         ? renderRequest()
@@ -611,6 +632,18 @@
       else goExplore();
     } else {
       goExplore();
+    }
+  }
+
+  /* Segarkan pengajuan dari Firebase (mode firebase) lalu render ulang */
+  function refreshThenRender(renderFn) {
+    if (CFB.data.getMode() === 'firebase') {
+      CFB.data.refreshBookings().catch(() => {}).then(() => {
+        updateBookingBadge();
+        renderFn();
+      });
+    } else {
+      renderFn();
     }
   }
 
@@ -678,6 +711,8 @@
     bindEvents();
     try {
       await CFB.data.load();
+      updateModeUI();
+      CFB.data.noticeModeOnce();
       updateBookingBadge();
       handleHashChange();
     } catch (err) {

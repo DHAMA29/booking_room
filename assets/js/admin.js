@@ -75,13 +75,19 @@
     return TABS.includes(h) ? h : 'dashboard';
   }
 
-  function renderTab() {
+  async function renderTab() {
     ui.tab = currentTabFromHash();
     TABS.forEach(t => {
       const sec = $('#tab-' + t);
       if (sec) sec.hidden = t !== ui.tab;
     });
     $$('.side-nav a').forEach(a => a.classList.toggle('active', a.dataset.tab === ui.tab));
+    // Segarkan pengajuan dari Firebase sebelum menampilkan tab data
+    if (ui.tab === 'dashboard' || ui.tab === 'pengajuan') {
+      if (CFB.data.getMode() === 'firebase') {
+        try { await CFB.data.refreshBookings(); } catch (e) { /* offline */ }
+      }
+    }
     if (ui.tab === 'dashboard') renderDashboard();
     if (ui.tab === 'pengajuan') renderBookings();
     if (ui.tab === 'fasilitas') renderFacilities();
@@ -114,11 +120,20 @@
     CFB.util.stagger($('#kpiRow'));
 
     // Catatan jumlah data + tombol muat data contoh
+    const fbMode = CFB.data.getMode() === 'firebase';
     const note = $('#dashNote');
     if (note) {
       note.textContent = bookings.length
-        ? bookings.length + ' pengajuan tersimpan pada perangkat ini.'
-        : 'Belum ada pengajuan pada perangkat ini.';
+        ? (fbMode
+          ? bookings.length + ' pengajuan tersinkron dari Firebase (semua pengguna).'
+          : bookings.length + ' pengajuan tersimpan pada perangkat ini.')
+        : (fbMode ? 'Belum ada pengajuan pada Firebase.' : 'Belum ada pengajuan pada perangkat ini.');
+    }
+    const footNote = $('#dashFootNote');
+    if (footNote) {
+      footNote.innerHTML = fbMode
+        ? 'Analitik dihitung dari seluruh pengajuan pada <strong>Firebase Realtime Database</strong>.'
+        : 'Analitik dihitung dari data pengajuan (LocalStorage) di atas data awal <code>data/*.json</code>. Klik <em>Muat data contoh</em> pada kartu kosong untuk melihat tampilan analitik.';
     }
 
     if (!bookings.length) {
@@ -303,7 +318,8 @@
       confirmText: 'Ya, setujui'
     });
     if (!ok) return;
-    CFB.data.updateBookingStatus(id, 'Approved');
+    const updated = await CFB.data.updateBookingStatus(id, 'Approved');
+    if (!updated) return; // toast error sudah ditampilkan data layer
     CFB.notify.success('Pengajuan disetujui', b.id + ' \u00b7 ' + b.facilityName);
     renderBookings();
   }
@@ -325,10 +341,13 @@
       '  <button type="button" class="btn-primary btn-danger" data-ok>' + CFB.icons.x + ' Tolak pengajuan</button>' +
       '</div>', { wide: true });
     m.ov.querySelector('[data-close]').addEventListener('click', m.close);
-    m.ov.querySelector('[data-ok]').addEventListener('click', () => {
+    m.ov.querySelector('[data-ok]').addEventListener('click', async () => {
       const reason = m.ov.querySelector('#rejectReason').value.trim();
+      const okBtn = m.ov.querySelector('[data-ok]');
+      okBtn.disabled = true;
+      const updated = await CFB.data.updateBookingStatus(id, 'Rejected', reason ? { rejectReason: reason } : null);
       m.close();
-      CFB.data.updateBookingStatus(id, 'Rejected', reason ? { rejectReason: reason } : null);
+      if (!updated) return;
       CFB.notify.warning('Pengajuan ditolak', b.id + ' \u00b7 slot waktu dikembalikan menjadi tersedia.');
       renderBookings();
     });
@@ -337,11 +356,81 @@
   // ============ Fasilitas: CRUD ============
   const CATEGORIES = ['Ruang Kelas', 'Laboratorium', 'Aula', 'Olahraga', 'Studio'];
 
+  /* Panel status & sinkronisasi Firebase (tab Fasilitas) */
+  function updateFirebasePanel() {
+    const meta = $('#fbMeta');
+    if (!meta) return;
+    const st = CFB.data.fbStatus();
+    const dot = $('#fbDot');
+    const seedBtn = $('#fbSeedBtn');
+    const resetBtn = $('#facResetBtn');
+    if (st.mode === 'firebase') {
+      dot.className = 'fb-dot ok';
+      meta.innerHTML = '<strong>Terhubung &amp; aktif</strong> \u2014 fasilitas & pengajuan tersinkron lintas perangkat.<br><code>' + esc(st.base || '') + '</code>';
+      seedBtn.disabled = true;
+      seedBtn.textContent = 'Data awal terunggah';
+      if (resetBtn) resetBtn.textContent = 'Reset server ke data awal (JSON)';
+    } else if (st.reason === 'empty') {
+      dot.className = 'fb-dot warn';
+      meta.innerHTML = 'Terhubung, namun database masih <strong>kosong</strong>. Klik <strong>Unggah data awal</strong>, atau import <code>firebase-seed.json</code> lewat Firebase Console.';
+      seedBtn.disabled = false;
+      seedBtn.textContent = 'Unggah data awal (Seed)';
+      if (resetBtn) resetBtn.textContent = 'Reset ke data awal (JSON)';
+    } else if (st.reason === 'denied') {
+      dot.className = 'fb-dot bad';
+      meta.innerHTML = '<strong>Akses ditolak.</strong> Buka Firebase Console \u2192 Realtime Database \u2192 tab <strong>Rules</strong>, lalu izinkan baca/tulis (contoh rules ada di README).';
+      seedBtn.disabled = true;
+    } else if (st.reason === 'no-config') {
+      dot.className = 'fb-dot warn';
+      meta.innerHTML = 'Belum dikonfigurasi \u2014 isi <code>databaseURL</code> pada <code>assets/js/firebase-config.js</code>.';
+      seedBtn.disabled = true;
+    } else {
+      dot.className = 'fb-dot bad';
+      meta.innerHTML = '<strong>Tidak dapat terhubung.</strong> Periksa koneksi internet / URL database. Aplikasi sementara berjalan pada mode lokal.';
+      seedBtn.disabled = true;
+    }
+  }
+
+  async function seedFirebaseFlow() {
+    const st = CFB.data.fbStatus();
+    if (!st.reachable) {
+      CFB.notify.warning('Firebase tidak terjangkau', 'Periksa koneksi / Rules database lalu coba lagi.');
+      return;
+    }
+    const n = CFB.data.getFacilities().length;
+    const ok = await CFB.confirm({
+      title: 'Unggah data awal ke Firebase?',
+      html: 'Data <strong>' + n + ' fasilitas</strong> beserta kebijakan ketersediaan dari <code>data/*.json</code> akan ditulis ke Realtime Database dan dipakai oleh semua pengunjung situs. Pengajuan yang sudah ada tidak terhapus.',
+      confirmText: 'Ya, unggah'
+    });
+    if (!ok) return;
+    const btn = $('#fbSeedBtn');
+    btn.disabled = true;
+    btn.textContent = 'Mengunggah\u2026';
+    const res = await CFB.data.seedFirebase();
+    if (res.ok) {
+      CFB.notify.success('Data awal terunggah', res.facilities + ' fasilitas + kebijakan ketersediaan tersimpan di Firebase. Mode tersinkon kini aktif.');
+      renderTab();
+    } else {
+      CFB.notify.error('Gagal mengunggah', res.error);
+      updateFirebasePanel();
+    }
+  }
+
   function renderFacilities() {
+    updateFirebasePanel();
     const facilities = CFB.data.getFacilities();
-    const o = CFB.data.getOverrides();
-    $('#facCount').textContent = facilities.length + ' fasilitas \u00b7 ' + o.created.length + ' ditambah \u00b7 ' +
-      Object.keys(o.updated).length + ' diubah \u00b7 ' + o.deleted.length + ' dihapus';
+    const st = CFB.data.getFacilityStats();
+    $('#facCount').textContent = st.mode === 'firebase'
+      ? facilities.length + ' fasilitas \u00b7 tersinkon Firebase'
+      : facilities.length + ' fasilitas \u00b7 ' + st.created + ' ditambah \u00b7 ' +
+        st.updated + ' diubah \u00b7 ' + st.deleted + ' dihapus';
+    const noteEl = $('#facNote');
+    if (noteEl) {
+      noteEl.innerHTML = st.mode === 'firebase'
+        ? 'Perubahan langsung ditulis ke <strong>Firebase Realtime Database</strong> sehingga langsung terlihat oleh semua pengguna setelah dimuat ulang. Tombol <em>Reset</em> menimpa data fasilitas di server dengan isi <code>data/facilities.json</code>.'
+        : 'Perubahan tersimpan di browser (LocalStorage) sebagai lapisan di atas data awal <code>data/facilities.json</code>. Tombol <em>Reset</em> mengembalikan ke isi JSON.';
+    }
 
     const tbody = $('#facTable tbody');
     tbody.innerHTML = facilities.map(f => {
@@ -417,7 +506,7 @@
     m.ov.querySelector('[data-close]').addEventListener('click', m.close);
     const form = m.ov.querySelector('#facForm');
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const val = (sel) => m.ov.querySelector(sel).value.trim();
       const num = (sel) => parseInt(m.ov.querySelector(sel).value, 10);
@@ -442,7 +531,6 @@
         return;
       }
 
-      const o = CFB.data.getOverrides();
       const obj = {
         id: f ? f.id : CFB.data.nextFacilityId(),
         name, location, capacity,
@@ -452,16 +540,21 @@
         description: val('#af-desc'),
         openHours: { start, end }
       };
-      if (f) {
-        const idx = o.created.findIndex(x => x.id === f.id);
-        if (idx >= 0) o.created[idx] = obj;
-        else o.updated[f.id] = obj;
-      } else {
-        o.created.push(obj);
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Menyimpan\u2026';
+      const res = await CFB.data.saveFacility(obj);
+      if (!res.ok) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Simpan fasilitas';
+        CFB.notify.error('Gagal menyimpan fasilitas', res.error);
+        return;
       }
-      CFB.data.setOverrides(o);
       m.close();
-      CFB.notify.success(f ? 'Fasilitas diperbarui' : 'Fasilitas ditambahkan', obj.id + ' \u00b7 ' + obj.name + ' \u2014 langsung terlihat di sisi pengguna.');
+      CFB.notify.success(f ? 'Fasilitas diperbarui' : 'Fasilitas ditambahkan',
+        obj.id + ' \u00b7 ' + obj.name + (CFB.data.getMode() === 'firebase'
+          ? ' \u2014 tersimpan di Firebase, terlihat oleh semua pengguna.'
+          : ' \u2014 langsung terlihat di sisi pengguna.'));
       renderFacilities();
     });
     setTimeout(() => m.ov.querySelector('#af-name').focus(), 80);
@@ -474,34 +567,39 @@
     const ok = await CFB.confirm({
       title: 'Hapus fasilitas ini?',
       danger: true,
-      html: 'Fasilitas <strong>' + esc(f.name) + '</strong> (' + esc(id) + ') akan disembunyikan dari sisi pengguna.' +
+      html: 'Fasilitas <strong>' + esc(f.name) + '</strong> (' + esc(id) + ') akan dihapus' +
+        (CFB.data.getMode() === 'firebase' ? ' dari <strong>Firebase (untuk semua pengguna)</strong>' : ' dari daftar pada perangkat ini') + '.' +
         (used ? '<br><br>Terdapat <strong>' + used + ' pengajuan</strong> terkait fasilitas ini \u2014 riwayat tetap tersimpan dengan nama fasilitas.' : ''),
       confirmText: 'Ya, hapus'
     });
     if (!ok) return;
-    const o = CFB.data.getOverrides();
-    const idx = o.created.findIndex(x => x.id === id);
-    if (idx >= 0) o.created.splice(idx, 1);
-    else { if (!o.deleted.includes(id)) o.deleted.push(id); delete o.updated[id]; }
-    CFB.data.setOverrides(o);
+    const res = await CFB.data.deleteFacility(id);
+    if (!res.ok) { CFB.notify.error('Gagal menghapus fasilitas', res.error); return; }
     CFB.notify.info('Fasilitas dihapus', id + ' tidak lagi tampil di sisi pengguna.');
     renderFacilities();
   }
 
   async function resetToSeed() {
+    const fb = CFB.data.getMode() === 'firebase';
     const ok = await CFB.confirm({
       title: 'Reset ke data awal?',
-      html: 'Semua perubahan admin (tambahan, ubahan, hapusan) akan dibatalkan dan kembali ke isi <code>data/facilities.json</code>. Pengajuan tidak terpengaruh.',
+      html: fb
+        ? 'Data fasilitas di <strong>Firebase</strong> akan ditimpa dengan isi <code>data/facilities.json</code>. Perubahan (tambahan/ubahan/hapusan) di server hilang. Pengajuan tidak terpengaruh.'
+        : 'Semua perubahan admin (tambahan, ubahan, hapusan) akan dibatalkan dan kembali ke isi <code>data/facilities.json</code>. Pengajuan tidak terpengaruh.',
       confirmText: 'Ya, reset'
     });
     if (!ok) return;
-    CFB.data.resetOverrides();
-    CFB.notify.success('Data direset', 'Kembali ke data awal dari data/facilities.json.');
+    const res = await CFB.data.resetFacilities();
+    if (!res.ok) { CFB.notify.error('Gagal reset', res.error); return; }
+    CFB.notify.success('Data direset',
+      res.target === 'firebase'
+        ? 'Fasilitas di Firebase dikembalikan ke data awal.'
+        : 'Kembali ke data awal dari data/facilities.json.');
     renderFacilities();
   }
 
   // ============ Data contoh (untuk demo analitik) ============
-  function seedDemoBookings() {
+  async function seedDemoBookings() {
     const demo = [
       { f: 'FAC-001', day: 1, h: 10, dur: 2, name: 'Dimas Prasetyo', nim: '23/456781/PA/20014', org: 'Ilmu Komunikasi 2023', part: 32, purpose: 'Latihan presentasi tugas besar mata kuliah Komunikasi Publik.', status: 'Pending' },
       { f: 'FAC-002', day: 2, h: 13, dur: 2, name: 'Siti Rahmawati', nim: '22/415672/PA/19880', org: 'BEM Fakultas', part: 100, purpose: 'Rapat koordinasi kerja cabinet BEM periode 2026.', status: 'Pending' },
@@ -520,15 +618,16 @@
     ];
 
     const dates = CFB.data.bookableDates();
-    let added = 0;
-    demo.forEach((d, i) => {
+    let added = 0, failed = 0;
+    for (let i = 0; i < demo.length; i++) {
+      const d = demo[i];
       const f = CFB.data.getFacilityById(d.f);
-      if (!f) return;
+      if (!f) continue;
       const date = dates[Math.min(d.day, dates.length - 1)];
-      if (!CFB.data.isRangeFree(f.id, date, d.h, d.dur)) return; // hindari bentrok dengan seed
+      if (!CFB.data.isRangeFree(f.id, date, d.h, d.dur)) continue; // hindari bentrok dengan seed
       const created = new Date(Date.now() - (demo.length - i) * 7 * 3600 * 1000).toISOString();
       const email = d.name.toLowerCase().replace(/[^a-z]+/g, '.') .replace(/^\.|\.$/g, '') + '@mail.ugm.ac.id';
-      CFB.data.addBooking({
+      const saved = await CFB.data.addBooking({
         id: CFB.data.generateBookingId(),
         facilityId: f.id, facilityName: f.name, category: f.category || '', location: f.location, capacity: f.capacity,
         date, dateLabel: CFB.util.dateParts(date).full,
@@ -536,11 +635,16 @@
         slotLabel: CFB.util.rangeLabel(d.h, d.h + d.dur),
         name: d.name, nim: d.nim, email, phone: '+62 812-3456-78' + (10 + i),
         participants: d.part, organization: d.org, purpose: d.purpose, notes: '',
-        status: d.status, createdAt: created
+        status: d.status, createdAt: created,
+        clientId: 'demo-' + i   // data contoh bukan milik pengguna ini
       });
-      added++;
-    });
-    CFB.notify.success('Data contoh dimuat', added + ' pengajuan contoh ditambahkan untuk mengisi analitik.');
+      if (saved) added++; else failed++;
+    }
+    if (failed) {
+      CFB.notify.warning('Data contoh dimuat sebagian', added + ' ditambahkan, ' + failed + ' gagal (lihat notifikasi error).');
+    } else {
+      CFB.notify.success('Data contoh dimuat', added + ' pengajuan contoh ditambahkan untuk mengisi analitik.');
+    }
     renderDashboard();
   }
 
@@ -548,12 +652,14 @@
     if (CFB.data.getBookings().length) {
       const ok = await CFB.confirm({
         title: 'Muat data contoh?',
-        html: '14 pengajuan contoh akan <strong>ditambahkan</strong> ke data yang ada (data lama tidak terhapus). Digunakan untuk melihat tampilan analitik.',
+        html: '14 pengajuan contoh akan <strong>ditambahkan</strong> ke data yang ada (data lama tidak terhapus)' +
+          (CFB.data.getMode() === 'firebase' ? ' dan tersimpan di <strong>Firebase</strong> (terlihat semua pengguna)' : '') +
+          '. Digunakan untuk melihat tampilan analitik.',
         confirmText: 'Ya, muat data contoh'
       });
       if (!ok) return;
     }
-    seedDemoBookings();
+    await seedDemoBookings();
   }
 
   // ============ Bind & Init ============
@@ -580,20 +686,26 @@
     $('#bkSearch').addEventListener('input', (e) => { ui.bkQuery = e.target.value; renderBookings(); });
     $('#seedDemoBtn').addEventListener('click', seedDemoFlow);
     $('#bkClear').addEventListener('click', async () => {
+      const fb = CFB.data.getMode() === 'firebase';
       const ok = await CFB.confirm({
         title: 'Hapus semua pengajuan?',
         danger: true,
-        html: 'Seluruh <strong>' + CFB.data.getBookings().length + ' pengajuan</strong> akan dihapus permanen dari perangkat ini. Tindakan ini tidak dapat dibatalkan.',
+        html: fb
+          ? 'Seluruh <strong>' + CFB.data.getBookings().length + ' pengajuan</strong> akan dihapus dari <strong>Firebase (untuk semua pengguna)</strong>. Tindakan ini tidak dapat dibatalkan.'
+          : 'Seluruh <strong>' + CFB.data.getBookings().length + ' pengajuan</strong> akan dihapus permanen dari perangkat ini. Tindakan ini tidak dapat dibatalkan.',
         confirmText: 'Ya, hapus semua'
       });
       if (!ok) return;
-      CFB.data.clearBookings();
-      CFB.notify.success('Semua pengajuan dihapus', 'Data pengajuan pada perangkat ini telah dikosongkan.');
+      const done = await CFB.data.clearBookings();
+      if (!done) return;
+      CFB.notify.success('Semua pengajuan dihapus', fb ? 'Data pengajuan pada Firebase telah dikosongkan.' : 'Data pengajuan pada perangkat ini telah dikosongkan.');
       renderBookings();
     });
 
     $('#facAddBtn').addEventListener('click', () => openFacilityModal(null));
     $('#facResetBtn').addEventListener('click', resetToSeed);
+    $('#fbSeedBtn').addEventListener('click', seedFirebaseFlow);
+    $('#fbReloadBtn').addEventListener('click', () => location.reload());
 
     window.addEventListener('hashchange', () => {
       if (!$('#adminShell').hidden) renderTab();
@@ -604,10 +716,12 @@
     bind();
     try {
       await CFB.data.load();
+      CFB.data.noticeModeOnce();
     } catch (err) {
       console.error(err);
       CFB.notify.error('Data tidak termuat', 'Pastikan diakses lewat HTTP server (lihat README).');
     }
+    updateFirebasePanel();
     if (sessionStorage.getItem(GATE_KEY) === '1') showShell();
     else showGate();
   }

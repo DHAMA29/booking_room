@@ -273,6 +273,19 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .empty-title { font-size: 17px; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
 .empty-hint { font-size: 14px; color: var(--ink-3); margin: 0 0 16px; }
 
+/* ===== Mode pill (badge sumber data: Firebase / lokal) ===== */
+.mode-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; line-height: 1;
+  padding: 5px 11px; border-radius: 999px;
+  vertical-align: middle; white-space: nowrap;
+}
+.mode-pill .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.mode-pill.mode-fb { color: var(--success); background: var(--success-soft); border: 1px solid #BBF7D0; }
+.mode-pill.mode-fb .dot { background: var(--success-2); box-shadow: 0 0 0 3px rgba(22, 163, 74, .15); }
+.mode-pill.mode-local { color: var(--warning); background: var(--warning-soft); border: 1px solid #FDE68A; }
+.mode-pill.mode-local .dot { background: var(--warning-2); box-shadow: 0 0 0 3px rgba(217, 119, 6, .15); }
+
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
