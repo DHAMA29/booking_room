@@ -55,7 +55,8 @@ window.CFB_FIREBASE = {
      mencoba mendaftarkan dirinya ke /admins (first-claim) —
      set "allowFirstAdminClaim": false untuk menonaktifkannya. */
   adminEmails: [
-    // 'email.anda@gmail.com'
+    'joshesastrawinata@mail.ugm.ac.id',
+     'dhamashidqiputra2007@mail.ugm.ac.id'
   ],
   allowFirstAdminClaim: true
 };
