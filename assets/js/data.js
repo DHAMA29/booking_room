@@ -1,5 +1,5 @@
 /* ============================================
-   Campus Facility Booking — Data Layer
+   Gamaspace — Data Layer
    --------------------------------------------
    Dua mode (otomatis dipilih saat load()):
    1. MODE FIREBASE — Realtime Database via REST API
@@ -17,7 +17,6 @@ window.CFB = window.CFB || {};
   const KEY_BOOKINGS = 'cfb_bookings';
   const KEY_OVERRIDES = 'cfb_facility_overrides';
   const KEY_CLIENT = 'cfb_client_id';
-  const KEY_NOTICE = 'cfb_fb_notice_shown';
 
   const DEFAULT_POLICY = { bookingDaysAhead: 14, minDurationHours: 1, maxDurationHours: 2 };
   const FB_TIMEOUT_MS = 7000;
@@ -60,10 +59,18 @@ window.CFB = window.CFB || {};
   async function fbRequest(method, path, body) {
     const base = fbBase();
     if (!base) { const e = new Error('Konfigurasi Firebase belum diisi'); e.code = 'no-config'; throw e; }
+    /* Sertakan idToken Firebase Auth (bila pengguna login) —
+       dipakai bila Rules membatasi tulisan pada auth != null */
+    let token = null;
+    try {
+      if (window.CFB.auth && CFB.auth.getToken) token = await CFB.auth.getToken();
+    } catch (e) { token = null; }
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FB_TIMEOUT_MS);
     try {
-      const res = await fetch(base + '/' + path + '.json', {
+      let url = base + '/' + path + '.json';
+      if (token) url += '?auth=' + encodeURIComponent(token);
+      const res = await fetch(url, {
         method: method,
         signal: ctrl.signal,
         headers: (body !== undefined) ? { 'Content-Type': 'application/json' } : undefined,
@@ -99,16 +106,19 @@ window.CFB = window.CFB || {};
   }
 
   function fbErrMsg(e) {
+    const T = (k) => (window.CFB.i18n ? CFB.i18n.t(k) : k);
     const c = e && e.code;
-    if (c === 'denied') return 'Akses ditolak Firebase — buka tab Rules di Firebase Console dan izinkan baca/tulis (lihat README).';
-    if (c === 'timeout') return 'Koneksi ke Firebase timeout. Periksa koneksi internet lalu coba lagi.';
-    if (c === 'network') return 'Tidak dapat terhubung ke Firebase. Periksa koneksi internet lalu coba lagi.';
-    if (c === 'no-config') return 'Konfigurasi Firebase belum diisi (assets/js/firebase-config.js).';
-    return (e && e.message) || 'Terjadi kesalahan pada Firebase.';
+    if (c === 'denied') return T('dl.err.denied');
+    if (c === 'timeout') return T('dl.err.timeout');
+    if (c === 'network') return T('dl.err.network');
+    if (c === 'no-config') return T('dl.err.noconfig');
+    return (e && e.message) || T('dl.err.generic');
   }
 
+  /* Gangguan penyimpanan tidak lagi ditampilkan sebagai toast kepada
+     pengguna — cukup dicatat di console untuk keperluan pengembang. */
   function fbErrorToast(e) {
-    CFB.notify.error('Gagal menyimpan ke Firebase', fbErrMsg(e));
+    console.warn('[Gamaspace] Penyimpanan data gagal:', fbErrMsg(e));
   }
 
   // ============ Konversi bentuk data ============
@@ -207,10 +217,20 @@ window.CFB = window.CFB || {};
     rebuildLocalFacilities();
   }
 
+  /* Bila fasilitas dari server belum memiliki denah (layout), pakai denah
+     default dari data/facilities.json sebagai fallback tampilan —
+     tanpa menulis ke server. Admin tetap dapat kustomisasi lewat editor. */
+  function applySeedLayoutFallback() {
+    const seedMap = {};
+    SEED.forEach(s => { if (s && s.layout) seedMap[s.id] = s.layout; });
+    FACILITIES.forEach(f => { if (!f.layout && seedMap[f.id]) f.layout = seedMap[f.id]; });
+  }
+
   async function load() {
     await loadLocalSeeds();
     const ok = await tryFirebase();
-    if (!ok) applyLocalMode();
+    if (ok) applySeedLayoutFallback();
+    else applyLocalMode();
   }
 
   /* Ambil ulang pengajuan dari Firebase (mode firebase saja) */
@@ -218,6 +238,16 @@ window.CFB = window.CFB || {};
     if (MODE !== 'firebase') return false;
     try {
       BOOKINGS = bookingMapToList(await fbGet('bookings'));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* Muat ulang fasilitas dari server (mode firebase) — dipakai admin editor */
+  async function refreshFacilities() {
+    if (MODE !== 'firebase') return false;
+    try {
+      FACILITIES = mapToFacilities(await fbGet('facilities'));
+      applySeedLayoutFallback();
       return true;
     } catch (e) { return false; }
   }
@@ -467,10 +497,22 @@ window.CFB = window.CFB || {};
   /* Semua pengajuan (untuk admin & cek slot) */
   function getBookings() { return BOOKINGS.slice(); }
 
-  /* Pengajuan milik pengguna ini (untuk "Peminjaman Saya") */
+  /* Pengajuan milik pengguna ini (untuk "Peminjaman Saya").
+     Bila login Firebase: HANYA pengajuan yang terikat uid akun ini
+     (lintas perangkat). Pengajuan tamu milik browser ini (sebelum login)
+     tetap tampil; pengajuan milik akun/pengguna lain tidak pernah tampil.
+     Bila tamu: hanya pengajuan yang terikat clientId peramban ini.
+     Pengajuan tanpa uid maupun clientId (data lama/uji) tidak ditampilkan
+     ke siapa pun — hanya terlihat pada panel admin. */
   function getMyBookings() {
     const cid = getClientId();
-    return BOOKINGS.filter(b => !b.clientId || b.clientId === cid).slice();
+    const u = (window.CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
+    if (u && u.uid) {
+      return BOOKINGS.filter(b =>
+        b.uid === u.uid || (!b.uid && b.clientId && b.clientId === cid)
+      ).slice();
+    }
+    return BOOKINGS.filter(b => !b.uid && b.clientId === cid).slice();
   }
 
   function getBookingById(id) { return BOOKINGS.find(b => b.id === id) || null; }
@@ -479,6 +521,13 @@ window.CFB = window.CFB || {};
   async function addBooking(b) {
     const rec = Object.assign({}, b);
     if (!rec.clientId) rec.clientId = getClientId();
+    /* Ikat pengajuan ke akun Firebase (bila login) → riwayat lintas perangkat */
+    const u = (window.CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
+    if (u && u.uid) {
+      rec.uid = u.uid;
+      if (u.email) rec.accountEmail = u.email;
+      if (u.name && !rec.name) rec.name = u.name;
+    }
     if (MODE === 'firebase') {
       try {
         const key = await fbPush('bookings', stripInternal(rec));
@@ -490,7 +539,8 @@ window.CFB = window.CFB || {};
     const list = migrateBookings();
     list.unshift(rec);
     if (!CFB.store.set(KEY_BOOKINGS, list)) {
-      CFB.notify.error('Gagal menyimpan', 'Penyimpanan lokal browser tidak dapat diakses.');
+      CFB.notify.error((window.CFB.i18n ? CFB.i18n.t('dl.err.localTitle') : 'Gagal menyimpan'),
+        (window.CFB.i18n ? CFB.i18n.t('dl.err.localMsg') : 'Penyimpanan lokal browser tidak dapat diakses.'));
       return null;
     }
     BOOKINGS = list;
@@ -538,7 +588,7 @@ window.CFB = window.CFB || {};
     const d = new Date();
     const ymd = '' + d.getFullYear() + CFB.util.pad2(d.getMonth() + 1) + CFB.util.pad2(d.getDate());
     const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-    return 'CFB-' + ymd + '-' + rand;
+    return 'GMS-' + ymd + '-' + rand;
   }
 
   // ============ Status & publikasi ============
@@ -552,19 +602,15 @@ window.CFB = window.CFB || {};
       message: FBSTAT.message
     };
   }
-  /* Tampilkan toast info mode sekali per sesi (dipanggil app.js/admin.js setelah load) */
-  function noticeModeOnce() {
-    if (CFB.store.get(KEY_NOTICE, null)) return;
-    CFB.store.set(KEY_NOTICE, '1');
-    if (MODE === 'firebase') {
-      CFB.notify.info('Tersambung ke Firebase', 'Data fasilitas & pengajuan tersinkron melalui Realtime Database.');
-    } else if (FBSTAT.reason === 'empty') {
-      CFB.notify.warning('Firebase masih kosong', 'Buka Admin Panel → tab Fasilitas → tombol "Unggah data awal (Seed)", atau import firebase-seed.json lewat Firebase Console.');
-    } else if (FBSTAT.reason === 'denied') {
-      CFB.notify.warning('Firebase: akses ditolak', 'Buka Firebase Console → Realtime Database → tab Rules, lalu izinkan baca/tulis (contoh rules ada di README).');
-    } else if (FBSTAT.reason === 'unreachable') {
-      CFB.notify.warning('Firebase tidak terjangkau', 'Aplikasi berjalan pada mode lokal (LocalStorage). Periksa koneksi internet atau konfigurasi.');
-    }
+  /* ===== Baca/tulis node arbitrer (Task 9 — dipakai RBAC admin:
+     daftar admin pada node /admins). null bila ditolak/tidak terjangkau. */
+  async function fbNodeGet(path) {
+    try { return await fbGet(path); }
+    catch (e) { return null; }
+  }
+  async function fbNodePut(path, value) {
+    try { await fbPut(path, value); return { ok: true }; }
+    catch (e) { return { ok: false, error: fbErrMsg(e) }; }
   }
 
   CFB.data = {
@@ -576,8 +622,9 @@ window.CFB = window.CFB || {};
     isHourTaken, durationOptions, isRangeFree,
     suggestAlternatives,
     getBookings, getMyBookings, getBookingById,
-    addBooking, updateBookingStatus, clearBookings, refreshBookings,
+    addBooking, updateBookingStatus, clearBookings, refreshBookings, refreshFacilities,
     generateBookingId, getClientId,
-    getMode, fbStatus, seedFirebase, noticeModeOnce
+    getMode, fbStatus, seedFirebase,
+    fbNodeGet, fbNodePut
   };
 })();

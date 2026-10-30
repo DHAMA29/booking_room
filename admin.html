@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel — Campus Facility Booking</title>
+  <title>Admin Panel — Gamaspace</title>
   <meta name="robots" content="noindex" />
-  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png" />
+  <link rel="shortcut icon" href="assets/images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -14,28 +17,63 @@
 </head>
 <body>
 
-  <!-- ============ GATE (login) ============ -->
+  <!-- ============ GATE (login email + kata sandi — RBAC) ============ -->
   <div id="adminGate" class="gate-screen" hidden>
     <div class="gate-card">
       <div class="gate-brand">
+        <img class="brand-logo" src="assets/images/logo.png" alt="" onload="this.parentElement.classList.add('has-logo')" onerror="this.remove()" />
         <svg class="brand-mark" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
           <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
           <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
         </svg>
-        <span>Campus Facility Booking</span>
+        <span>Gamaspace</span>
         <small>ADMIN PANEL</small>
       </div>
-      <h1>Masuk sebagai pengelola</h1>
-      <p class="gate-sub">Kelola fasilitas, setujui pengajuan peminjaman, dan pantau statistik pemakaian.</p>
-      <form id="gateForm" class="gate-form" novalidate>
-        <div class="form-row">
-          <label for="gateCode">Kode Akses</label>
-          <input id="gateCode" type="password" placeholder="Masukkan kode akses admin" autocomplete="off" />
-          <p class="field-error" id="gateError" hidden>Kode akses salah. Silakan coba lagi.</p>
+
+      <!-- State: form login (email + kata sandi) -->
+      <div id="gateLogin">
+        <h1>Masuk sebagai pengelola</h1>
+        <p class="gate-sub">Kelola fasilitas, setujui pengajuan, dan unduh laporan pemakaian.</p>
+        <form id="gateForm" class="gate-form" novalidate>
+          <div class="form-row">
+            <label for="gateEmail">Email</label>
+            <input id="gateEmail" type="email" autocomplete="email" placeholder="nama@contoh.com" />
+          </div>
+          <div class="form-row">
+            <label for="gatePass">Kata sandi</label>
+            <input id="gatePass" type="password" autocomplete="current-password" />
+          </div>
+          <p class="field-error" id="gateError" hidden></p>
+          <button type="submit" class="btn-primary" id="gateSubmit">Masuk</button>
+        </form>
+        <button type="button" id="gateSwitch" class="gate-switch">Belum punya akun admin? <strong>Daftar</strong></button>
+        <p class="gate-hint">Akses diberikan kepada akun pengelola terdaftar. <a href="index.html">&larr; Kembali ke situs pengguna</a></p>
+      </div>
+
+      <!-- State: memeriksa akun -->
+      <div id="gateChecking" hidden>
+        <div class="gate-state"><span class="btn-spinner" aria-hidden="true"></span> Memeriksa akun&hellip;</div>
+      </div>
+
+      <!-- State: akses ditolak -->
+      <div id="gateDenied" hidden>
+        <div class="gd-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
         </div>
-        <button type="submit" class="btn-primary">Masuk</button>
-      </form>
-      <p class="gate-hint">Kode demo: <code>admin123</code> (lihat README) &middot; <a href="index.html">&larr; Kembali ke situs pengguna</a></p>
+        <h1>Akses ditolak</h1>
+        <p class="gate-sub">Akun <strong id="gdEmail"></strong> belum terdaftar sebagai admin.</p>
+        <div class="gd-how">
+          <p>Berikan akses dengan salah satu cara berikut (lihat README untuk rincian):</p>
+          <ol>
+            <li>Isi <code>adminEmails</code> di <code>assets/js/firebase-config.js</code> dengan email Anda, atau</li>
+            <li>Daftarkan email Anda pada node <code>/admins</code> di database.</li>
+          </ol>
+        </div>
+        <div class="gd-actions">
+          <button type="button" id="gdRetry" class="btn-primary">Muat ulang</button>
+          <a href="index.html">&larr; Kembali ke situs pengguna</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -43,11 +81,12 @@
   <div id="adminShell" class="admin-shell" hidden>
     <aside class="admin-side">
       <div class="side-brand">
+        <img class="brand-logo" src="assets/images/logo.png" alt="" onload="this.parentElement.classList.add('has-logo')" onerror="this.remove()" />
         <svg class="brand-mark" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true">
           <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
           <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
         </svg>
-        <span>Facility Booking<small>ADMIN PANEL</small></span>
+        <span>Gamaspace<small>ADMIN PANEL</small></span>
       </div>
       <nav class="side-nav" aria-label="Navigasi admin">
         <a href="#dashboard" data-tab="dashboard">
@@ -64,6 +103,7 @@
         </a>
       </nav>
       <div class="side-foot">
+        <p id="adminWho" class="admin-who" hidden></p>
         <a href="index.html" target="_blank" rel="noopener">Lihat situs pengguna &nearr;</a>
         <button id="logoutBtn" class="btn-ghost" type="button">Keluar</button>
       </div>
@@ -76,12 +116,20 @@
         <div class="page-head">
           <p class="eyebrow">Dashboard</p>
           <h1 id="dash-title">Ringkasan pengelolaan</h1>
-          <p class="lede">Statistik pengajuan peminjaman dan pemakaian fasilitas pada perangkat ini.</p>
+          <p class="lede">Statistik pengajuan peminjaman dan pemakaian fasilitas.</p>
         </div>
         <div class="admin-toolbar">
           <span id="dashNote" class="muted small"></span>
           <span class="toolbar-spacer"></span>
           <button id="seedDemoBtn" class="btn-link" type="button">+ Muat data contoh</button>
+          <button id="expCsvBtn" class="btn-ghost" type="button" disabled title="Ekspor seluruh pengajuan ke CSV (Excel)">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Ekspor CSV
+          </button>
+          <button id="expPdfBtn" class="btn-primary" type="button" disabled title="Unduh laporan PDF (ringkasan + seluruh pengajuan)">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Ekspor PDF
+          </button>
         </div>
         <div class="stat-row" id="kpiRow"></div>
         <div class="chart-grid">
@@ -148,23 +196,9 @@
           <button id="facAddBtn" class="btn-primary" type="button">+ Tambah Fasilitas</button>
           <span id="facCount" class="muted small"></span>
           <span class="toolbar-spacer"></span>
-          <button id="facResetBtn" class="btn-link" type="button">Reset ke data awal (JSON)</button>
+          <button id="facResetBtn" class="btn-link" type="button">Kembalikan data awal</button>
         </div>
 
-        <!-- Panel status & sinkronisasi Firebase -->
-        <div id="fbPanel" class="fb-panel">
-          <div class="fb-status">
-            <span id="fbDot" class="fb-dot"></span>
-            <div class="fb-text">
-              <p class="fb-title">Firebase Realtime Database</p>
-              <p class="fb-meta" id="fbMeta">Memeriksa koneksi&hellip;</p>
-            </div>
-          </div>
-          <div class="fb-actions">
-            <button id="fbSeedBtn" class="btn-primary" type="button" disabled>Unggah data awal (Seed)</button>
-            <button id="fbReloadBtn" class="btn-ghost" type="button">Muat ulang</button>
-          </div>
-        </div>
         <div class="table-wrap">
           <table class="admin-table" id="facTable">
             <thead>
@@ -182,9 +216,13 @@
     </main>
   </div>
 
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/vendor/qrcode.min.js"></script>
   <script src="assets/js/core.js"></script>
   <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/auth.js"></script>
   <script src="assets/js/data.js"></script>
+  <script src="assets/js/floorplan.js"></script>
   <script src="assets/js/admin.js"></script>
 </body>
 </html>

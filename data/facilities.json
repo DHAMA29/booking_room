@@ -5,10 +5,48 @@
     "category": "Ruang Kelas",
     "location": "Gedung Utama Lt. 2",
     "capacity": 40,
-    "facilities": ["Projector", "AC", "Wi-Fi"],
+    "facilities": [
+      "Projector",
+      "AC",
+      "Wi-Fi"
+    ],
     "status": "Available",
     "description": "Ruang kelas multimedia untuk perkuliahan, presentasi, dan diskusi kelas. Dilengkapi proyektor, AC, dan Wi-Fi sehingga cocok untuk kegiatan belajar yang nyaman.",
-    "openHours": { "start": "08:00", "end": "16:00" }
+    "openHours": {
+      "start": "08:00",
+      "end": "16:00"
+    },
+    "layout": {
+      "w": 10,
+      "h": 7,
+      "seats": 40,
+      "items": [
+        {
+          "type": "whiteboard",
+          "x": 5,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "projector",
+          "x": 5,
+          "y": 3.2,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1,
+          "y": 1.2,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 8.5,
+          "y": 6.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-002",
@@ -16,10 +54,72 @@
     "category": "Aula",
     "location": "Gedung Utama Lt. 1",
     "capacity": 150,
-    "facilities": ["Stage", "Sound System", "AC"],
+    "facilities": [
+      "Stage",
+      "Sound System",
+      "AC"
+    ],
     "status": "Available",
     "description": "Aula serbaguna di lantai 1 gedung utama dengan panggung dan sound system. Cocok untuk seminar, acara akademik, dan kegiatan organisasi skala menengah.",
-    "openHours": { "start": "08:00", "end": "16:00" }
+    "openHours": {
+      "start": "08:00",
+      "end": "16:00"
+    },
+    "layout": {
+      "w": 14,
+      "h": 9,
+      "seats": 150,
+      "items": [
+        {
+          "type": "stage",
+          "x": 7,
+          "y": 1.2,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 2.2,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 11.8,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "podium",
+          "x": 8.2,
+          "y": 2.4,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1.2,
+          "y": 2.0,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 12.8,
+          "y": 2.0,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 7,
+          "y": 4.6,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 12.3,
+          "y": 8.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-003",
@@ -27,10 +127,60 @@
     "category": "Laboratorium",
     "location": "Gedung Teknologi Lt. 3",
     "capacity": 30,
-    "facilities": ["PC", "Headset", "AC"],
+    "facilities": [
+      "PC",
+      "Headset",
+      "AC"
+    ],
     "status": "Available",
     "description": "Laboratorium bahasa dengan PC dan headset di setiap meja untuk praktik listening dan speaking. Digunakan untuk praktikum bahasa dan ujian keterampilan.",
-    "openHours": { "start": "09:00", "end": "15:00" }
+    "openHours": {
+      "start": "09:00",
+      "end": "15:00"
+    },
+    "layout": {
+      "w": 10,
+      "h": 8,
+      "seats": 30,
+      "items": [
+        {
+          "type": "whiteboard",
+          "x": 5,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 2.5,
+          "y": 2.2,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 5,
+          "y": 2.2,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 7.5,
+          "y": 2.2,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 5,
+          "y": 3.6,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 8.5,
+          "y": 7.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-004",
@@ -38,10 +188,66 @@
     "category": "Laboratorium",
     "location": "Gedung Teknologi Lt. 2",
     "capacity": 32,
-    "facilities": ["PC", "Projector", "AC"],
+    "facilities": [
+      "PC",
+      "Projector",
+      "AC"
+    ],
     "status": "Available",
     "description": "Laboratorium komputer dengan 32 unit PC terpasang untuk praktikum pemrograman dan pelatihan software. Tersedia proyektor untuk pendampingan.",
-    "openHours": { "start": "08:00", "end": "16:00" }
+    "openHours": {
+      "start": "08:00",
+      "end": "16:00"
+    },
+    "layout": {
+      "w": 11,
+      "h": 8,
+      "seats": 32,
+      "items": [
+        {
+          "type": "whiteboard",
+          "x": 5.5,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "projector",
+          "x": 5.5,
+          "y": 2.6,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 2.75,
+          "y": 2.4,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 5.5,
+          "y": 2.4,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 8.25,
+          "y": 2.4,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 2.75,
+          "y": 4.2,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 10.55,
+          "y": 7.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-005",
@@ -49,10 +255,66 @@
     "category": "Aula",
     "location": "Gedung Serbaguna Lt. 1",
     "capacity": 120,
-    "facilities": ["Stage", "Sound System", "AC"],
+    "facilities": [
+      "Stage",
+      "Sound System",
+      "AC"
+    ],
     "status": "Limited",
     "description": "Aula mahasiswa dengan panggung dan sound system, sering digunakan untuk acara besar kemahasiswaan. Status Terbatas: pengajuan akan ditinjau lebih ketat oleh pengelola.",
-    "openHours": { "start": "10:00", "end": "18:00" }
+    "openHours": {
+      "start": "10:00",
+      "end": "18:00"
+    },
+    "layout": {
+      "w": 13,
+      "h": 8,
+      "seats": 120,
+      "items": [
+        {
+          "type": "stage",
+          "x": 6.5,
+          "y": 1.1,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 2,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 11,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "podium",
+          "x": 8,
+          "y": 2.2,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1.2,
+          "y": 1.8,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 11.8,
+          "y": 1.8,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 6.5,
+          "y": 7.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-006",
@@ -60,10 +322,53 @@
     "category": "Olahraga",
     "location": "Gedung Olahraga Lt. 1",
     "capacity": 200,
-    "facilities": ["Tribune", "Night Lighting"],
+    "facilities": [
+      "Tribune",
+      "Night Lighting"
+    ],
     "status": "Available",
     "description": "Lapangan basket standar dengan tribune penonton dan pencahayaan malam. Digunakan untuk latihan, pertandingan, dan kegiatan olahraga fakultas.",
-    "openHours": { "start": "07:00", "end": "17:00" }
+    "openHours": {
+      "start": "07:00",
+      "end": "17:00"
+    },
+    "layout": {
+      "w": 16,
+      "h": 10,
+      "seats": 200,
+      "items": [
+        {
+          "type": "screen",
+          "x": 8,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1.5,
+          "y": 1.6,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 14.5,
+          "y": 1.6,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 2,
+          "y": 0.45,
+          "rot": 90
+        },
+        {
+          "type": "door",
+          "x": 14,
+          "y": 9.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-007",
@@ -71,10 +376,48 @@
     "category": "Studio",
     "location": "Pusat Mahasiswa Lt. 3",
     "capacity": 16,
-    "facilities": ["Musical Instruments", "AC", "Soundproof"],
+    "facilities": [
+      "Musical Instruments",
+      "AC",
+      "Soundproof"
+    ],
     "status": "Unavailable",
     "description": "Studio kreatif bermusik untuk latihan band dan kegiatan seni mahasiswa. Sedang dalam perbaikan perangkat sehingga belum dapat dipinjam.",
-    "openHours": { "start": "10:00", "end": "18:00" }
+    "openHours": {
+      "start": "10:00",
+      "end": "18:00"
+    },
+    "layout": {
+      "w": 9,
+      "h": 6,
+      "seats": 16,
+      "items": [
+        {
+          "type": "sound",
+          "x": 1,
+          "y": 1.2,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 8,
+          "y": 1.2,
+          "rot": 0
+        },
+        {
+          "type": "table",
+          "x": 4.5,
+          "y": 3,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 4.5,
+          "y": 5.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-008",
@@ -82,10 +425,47 @@
     "category": "Olahraga",
     "location": "Area Olahraga Luar Ruang",
     "capacity": 80,
-    "facilities": ["Tribune", "Lighting"],
+    "facilities": [
+      "Tribune",
+      "Lighting"
+    ],
     "status": "Available",
     "description": "Lapangan multifungsi outdoor untuk olahraga, senam, dan kegiatan kemahasiswaan di luar ruang. Tersedia tribune dan pencahayaan.",
-    "openHours": { "start": "07:00", "end": "17:00" }
+    "openHours": {
+      "start": "07:00",
+      "end": "17:00"
+    },
+    "layout": {
+      "w": 14,
+      "h": 9,
+      "seats": 80,
+      "items": [
+        {
+          "type": "screen",
+          "x": 7,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1.5,
+          "y": 1.6,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 12.5,
+          "y": 1.6,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 7,
+          "y": 8.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-009",
@@ -93,10 +473,86 @@
     "category": "Aula",
     "location": "Gedung Pusat Lt. 1",
     "capacity": 500,
-    "facilities": ["Stage", "Sound System", "AC", "Projector", "LED Screen"],
+    "facilities": [
+      "Stage",
+      "Sound System",
+      "AC",
+      "Projector",
+      "LED Screen"
+    ],
     "status": "Available",
     "description": "Auditorium utama kampus berkapasitas 500 kursi dengan panggung besar, sound system profesional, dan layar LED. Digunakan untuk acara berskala fakultas dan universitas seperti wisuda, konferensi, dan seminar nasional.",
-    "openHours": { "start": "08:00", "end": "16:00" }
+    "openHours": {
+      "start": "08:00",
+      "end": "16:00"
+    },
+    "layout": {
+      "w": 18,
+      "h": 11,
+      "seats": 500,
+      "items": [
+        {
+          "type": "stage",
+          "x": 9,
+          "y": 1.4,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 3,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 15,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "podium",
+          "x": 11,
+          "y": 2.6,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1.5,
+          "y": 1.4,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 16.5,
+          "y": 1.4,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 1.5,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "type": "sound",
+          "x": 16.5,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 1.6,
+          "y": 10.55,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 16.4,
+          "y": 10.55,
+          "rot": 0
+        }
+      ]
+    }
   },
   {
     "id": "FAC-010",
@@ -104,9 +560,54 @@
     "category": "Ruang Kelas",
     "location": "Gedung Utama Lt. 3",
     "capacity": 60,
-    "facilities": ["Projector", "AC", "Wi-Fi", "Whiteboard"],
+    "facilities": [
+      "Projector",
+      "AC",
+      "Wi-Fi",
+      "Whiteboard"
+    ],
     "status": "Available",
     "description": "Ruang seminar berkapasitas 60 orang dengan kursi dapat disusun ulang. Cocok untuk seminar kecil, bimbingan akademik, diskusi kelompok, dan pertemuan organisasi.",
-    "openHours": { "start": "08:00", "end": "16:00" }
+    "openHours": {
+      "start": "08:00",
+      "end": "16:00"
+    },
+    "layout": {
+      "w": 11,
+      "h": 8,
+      "seats": 60,
+      "items": [
+        {
+          "type": "whiteboard",
+          "x": 5.5,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "screen",
+          "x": 5.5,
+          "y": 0.5,
+          "rot": 0
+        },
+        {
+          "type": "projector",
+          "x": 5.5,
+          "y": 2.6,
+          "rot": 0
+        },
+        {
+          "type": "podium",
+          "x": 5.5,
+          "y": 2.2,
+          "rot": 0
+        },
+        {
+          "type": "door",
+          "x": 10.55,
+          "y": 7.55,
+          "rot": 0
+        }
+      ]
+    }
   }
 ]

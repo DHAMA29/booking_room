@@ -1,5 +1,5 @@
 /* ============================================
-   Campus Facility Booking — Admin Panel (admin.html)
+   Gamaspace — Admin Panel (admin.html)
    Gate + Dashboard Analitik + CRUD Fasilitas + Kelola Pengajuan
    Bergantung pada: core.js, data.js
    ============================================ */
@@ -10,12 +10,11 @@
   const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
   const esc = CFB.util.esc;
 
-  const GATE_KEY = 'cfb_admin_session';
-  const ADMIN_CODE = 'admin123'; // kode demo — ubah untuk produksi
-
   const ui = { tab: 'dashboard', bkFilter: 'all', bkQuery: '' };
 
   const STATUS_LABEL = { Pending: 'Menunggu Persetujuan', Approved: 'Disetujui', Rejected: 'Ditolak' };
+  /* Status ringkas untuk kolom sempit pada laporan PDF */
+  const EXP_STATUS_SHORT = { Pending: 'Menunggu', Approved: 'Disetujui', Rejected: 'Ditolak' };
   function badge(s) {
     return '<span class="status-badge status-' + String(s).toLowerCase() + '">' + (STATUS_LABEL[s] || s) + '</span>';
   }
@@ -36,36 +35,114 @@
     return { ov, close };
   }
 
-  // ============ Gate ============
-  function showGate() {
+  /* ============ RBAC — Gate admin via Firebase Auth (Task 9/10) ============
+     Login HANYA memakai email + kata sandi (bisa daftar akun baru langsung
+     dari gate). Akses diberikan bila email terdaftar pada:
+       1. adminEmails (assets/js/firebase-config.js), atau
+       2. node /admins di Realtime Database (nilai = alamat email).
+     Bila kedua sumber kosong, login PERTAMA mencoba mendaftarkan dirinya
+     ke /admins (first-claim) — bila Rules belum mengizinkan node tersebut,
+     akses ditolak + petunjuk ditampilkan. */
+  const CFG = window.CFB_FIREBASE || {};
+  let lastAdminUid = null;
+
+  function gateState(name) {          // 'login' | 'checking' | 'denied'
     $('#adminGate').hidden = false;
     $('#adminShell').hidden = true;
-    $('#gateCode').value = '';
-    $('#gateError').hidden = true;
-    $('#gateCode').classList.remove('invalid');
-    setTimeout(() => $('#gateCode').focus(), 80);
+    $('#gateLogin').hidden = name !== 'login';
+    $('#gateChecking').hidden = name !== 'checking';
+    $('#gateDenied').hidden = name !== 'denied';
+    if (name === 'login') { gateError(''); setTimeout(() => $('#gateEmail').focus(), 80); }
   }
 
-  function showShell() {
+  function gateError(msg) {
+    const el = $('#gateError');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.hidden = !msg;
+  }
+
+  function cfgAdminEmails() {
+    return (Array.isArray(CFG.adminEmails) ? CFG.adminEmails : [])
+      .map(e => String(e || '').toLowerCase().trim()).filter(Boolean);
+  }
+
+  /* /admins/<key-aman> = "email@contoh.com" */
+  function adminKey(email) {
+    return String(email || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+  async function fetchAdminEmails() {
+    const raw = await CFB.data.fbNodeGet('admins');
+    if (!raw || typeof raw !== 'object') return [];
+    const out = [];
+    Object.keys(raw).forEach(k => {
+      const v = raw[k];
+      if (typeof v === 'string' && v.includes('@')) out.push(v.toLowerCase());
+    });
+    return out;
+  }
+
+  function enterShell(user, source) {
+    lastAdminUid = user.uid;
     $('#adminGate').hidden = true;
     $('#adminShell').hidden = false;
+    const who = $('#adminWho');
+    if (who) {
+      who.innerHTML = 'Masuk sebagai <strong>' + esc(user.email || user.name || 'admin') + '</strong>' +
+        (source === 'claim' ? ' <span class="aw-tag">terdaftar otomatis</span>' : '');
+      who.hidden = false;
+    }
     renderTab();
   }
 
-  function tryLogin(e) {
-    e.preventDefault();
-    if ($('#gateCode').value === ADMIN_CODE) {
-      sessionStorage.setItem(GATE_KEY, '1');
-      showShell();
-      CFB.notify.success('Selamat datang, Admin', 'Anda masuk sebagai pengelola fasilitas.');
-    } else {
-      $('#gateError').hidden = false;
-      $('#gateCode').classList.add('invalid');
-      const row = $('#gateCode').closest('.form-row');
-      if (row) row.classList.add('has-error');
-      const card = $('.gate-card');
-      card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+  function showDenied(email) {
+    $('#gdEmail').textContent = email || '—';
+    gateState('denied');
+  }
+
+  async function checkAdmin(user) {
+    const email = String((user && user.email) || '').toLowerCase();
+    if (!email) { showDenied(email); return; }
+    const cfgList = cfgAdminEmails();
+    const dbList = await fetchAdminEmails();
+    const inCfg = cfgList.includes(email);
+    const inDb = dbList.includes(email);
+    if (inCfg || inDb) { enterShell(user, inCfg ? 'config' : 'admins'); return; }
+
+    const empty = !cfgList.length && !dbList.length;
+    if (empty && CFG.allowFirstAdminClaim !== false) {
+      const res = await CFB.data.fbNodePut('admins/' + adminKey(email), email);
+      if (res.ok) {
+        CFB.notify.success('Terdaftar sebagai admin', email + ' tersimpan pada node /admins — akses permanen untuk akun ini.');
+        enterShell(user, 'claim');
+        return;
+      }
+      showDenied(email);   // Rules /admins belum mengizinkan → petunjuk di layar
+      return;
     }
+    showDenied(email);
+  }
+
+  async function handleAuthState() {
+    const u = (CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
+    if (!u) { lastAdminUid = null; gateState('login'); return; }
+    if (u.uid === lastAdminUid && !$('#adminShell').hidden) return; // sudah masuk
+    gateState('checking');
+    try { await checkAdmin(u); }
+    catch (e) { showDenied(u.email || ''); }
+  }
+
+  async function doGateLogin(fn, btn) {
+    gateError('');
+    if (!CFB.auth || !CFB.auth.available()) {
+      gateError('Login belum dikonfigurasi — isi apiKey & authDomain pada assets/js/firebase-config.js.');
+      return;
+    }
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    try { await fn(); }               // hasil datang via cfb:auth → handleAuthState
+    catch (e) { gateError(CFB.auth.errText(e)); }
+    finally { btn.disabled = false; btn.classList.remove('is-loading'); }
   }
 
   // ============ Tab (via hash) ============
@@ -119,20 +196,20 @@
     $$('#kpiRow [data-target]').forEach(el => CFB.util.countUp(el, +el.dataset.target));
     CFB.util.stagger($('#kpiRow'));
 
-    // Catatan jumlah data + tombol muat data contoh
+    // Catatan jumlah data (netral — tanpa menyebut teknis database)
     const fbMode = CFB.data.getMode() === 'firebase';
     const note = $('#dashNote');
     if (note) {
       note.textContent = bookings.length
         ? (fbMode
-          ? bookings.length + ' pengajuan tersinkron dari Firebase (semua pengguna).'
+          ? bookings.length + ' pengajuan tercatat (semua pengguna).'
           : bookings.length + ' pengajuan tersimpan pada perangkat ini.')
-        : (fbMode ? 'Belum ada pengajuan pada Firebase.' : 'Belum ada pengajuan pada perangkat ini.');
+        : (fbMode ? 'Belum ada pengajuan tercatat.' : 'Belum ada pengajuan pada perangkat ini.');
     }
     const footNote = $('#dashFootNote');
     if (footNote) {
       footNote.innerHTML = fbMode
-        ? 'Analitik dihitung dari seluruh pengajuan pada <strong>Firebase Realtime Database</strong>.'
+        ? 'Analitik dihitung dari seluruh pengajuan tercatat.'
         : 'Analitik dihitung dari data pengajuan (LocalStorage) di atas data awal <code>data/*.json</code>. Klik <em>Muat data contoh</em> pada kartu kosong untuk melihat tampilan analitik.';
     }
 
@@ -143,8 +220,10 @@
         '  <p class="ce-hint">Grafik analitik akan terisi setelah ada pengajuan dari mahasiswa, atau gunakan tombol <strong>Muat data contoh</strong> di atas untuk melihat tampilannya.</p>' +
         '</div>';
       $('#recentList').innerHTML = '<p class="chart-empty">Belum ada pengajuan.</p>';
+      updateExportButtons(bookings);
       return;
     }
+    updateExportButtons(bookings);
 
     // Donut status (conic-gradient)
     const total = bookings.length;
@@ -246,19 +325,26 @@
       div.className = 'bk-row';
       div.innerHTML =
         '<div class="bk-info">' +
-        '  <p class="bk-title">' + esc(b.facilityName) + ' <small>' + esc(b.organization || '') + '</small></p>' +
-        '  <p class="bk-sub">' +
+        '  <p class="bk-title">' + esc(b.facilityName) + '</p>' +
+        '  <p class="bk-meta">' +
         '    <span>' + esc(b.dateLabel || b.date) + '</span>' +
-        '    <span>' + esc(b.slotLabel || '') + ' WIB \u00b7 ' + (b.durationHours || 2) + ' jam</span>' +
+        '    <span class="bm-sep">\u00b7</span>' +
+        '    <span class="bm-time">' + esc(b.slotLabel || '') + ' WIB (' + (b.durationHours || 2) + ' jam)</span>' +
+        '    <span class="bm-sep">\u00b7</span>' +
         '    <span>' + b.participants + ' peserta</span>' +
-        '    <span>' + esc(b.name) + ' (' + esc(b.nim) + ')</span>' +
+        '  </p>' +
+        '  <p class="bk-person">' +
+        '    <span class="bp-name">' + esc(b.name) + '</span>' +
+        '    <span class="bp-sep">\u00b7</span>' +
+        '    <span class="bp-nim">' + esc(b.nim) + '</span>' +
+        (b.organization ? '<span class="bp-sep">\u00b7</span><span class="bp-org">' + esc(b.organization) + '</span>' : '') +
         '  </p>' +
         '  <p class="bk-refline">' + esc(b.id) + ' \u00b7 diajukan ' + new Date(b.createdAt).toLocaleString('id-ID') + '</p>' +
         '</div>' +
         '<div class="bk-side">' +
         '  ' + badge(b.status) +
         '  <div class="bk-actions">' +
-        '    <button type="button" class="btn-icon" data-detail="' + esc(b.id) + '" title="Lihat detail">' + CFB.icons.eye + '</button>' +
+        '    <button type="button" class="btn-icon" data-detail="' + esc(b.id) + '" title="Lihat rincian lengkap">' + CFB.icons.eye + '</button>' +
         (isPending
           ? '<button type="button" class="btn-mini ok" data-approve="' + esc(b.id) + '">' + CFB.icons.check + ' Setujui</button>' +
             '<button type="button" class="btn-mini no" data-reject="' + esc(b.id) + '">' + CFB.icons.x + ' Tolak</button>'
@@ -285,6 +371,7 @@
       ['Organisasi / Prodi', b.organization], ['Diajukan', new Date(b.createdAt).toLocaleString('id-ID')],
       ['Diputuskan', b.decidedAt ? new Date(b.decidedAt).toLocaleString('id-ID') : '—']
     ];
+    if (b.accountEmail) rows.push(['Akun', b.accountEmail + (b.uid ? ' (uid ' + String(b.uid).slice(0, 8) + '\u2026)' : '')]);
     const m = openModal(
       '<div class="modal-head">' +
       '  <div><p class="modal-eyebrow">Detail Pengajuan</p><h3 class="modal-title">' + esc(b.facilityName) + '</h3></div>' +
@@ -356,79 +443,17 @@
   // ============ Fasilitas: CRUD ============
   const CATEGORIES = ['Ruang Kelas', 'Laboratorium', 'Aula', 'Olahraga', 'Studio'];
 
-  /* Panel status & sinkronisasi Firebase (tab Fasilitas) */
-  function updateFirebasePanel() {
-    const meta = $('#fbMeta');
-    if (!meta) return;
-    const st = CFB.data.fbStatus();
-    const dot = $('#fbDot');
-    const seedBtn = $('#fbSeedBtn');
-    const resetBtn = $('#facResetBtn');
-    if (st.mode === 'firebase') {
-      dot.className = 'fb-dot ok';
-      meta.innerHTML = '<strong>Terhubung &amp; aktif</strong> \u2014 fasilitas & pengajuan tersinkron lintas perangkat.<br><code>' + esc(st.base || '') + '</code>';
-      seedBtn.disabled = true;
-      seedBtn.textContent = 'Data awal terunggah';
-      if (resetBtn) resetBtn.textContent = 'Reset server ke data awal (JSON)';
-    } else if (st.reason === 'empty') {
-      dot.className = 'fb-dot warn';
-      meta.innerHTML = 'Terhubung, namun database masih <strong>kosong</strong>. Klik <strong>Unggah data awal</strong>, atau import <code>firebase-seed.json</code> lewat Firebase Console.';
-      seedBtn.disabled = false;
-      seedBtn.textContent = 'Unggah data awal (Seed)';
-      if (resetBtn) resetBtn.textContent = 'Reset ke data awal (JSON)';
-    } else if (st.reason === 'denied') {
-      dot.className = 'fb-dot bad';
-      meta.innerHTML = '<strong>Akses ditolak.</strong> Buka Firebase Console \u2192 Realtime Database \u2192 tab <strong>Rules</strong>, lalu izinkan baca/tulis (contoh rules ada di README).';
-      seedBtn.disabled = true;
-    } else if (st.reason === 'no-config') {
-      dot.className = 'fb-dot warn';
-      meta.innerHTML = 'Belum dikonfigurasi \u2014 isi <code>databaseURL</code> pada <code>assets/js/firebase-config.js</code>.';
-      seedBtn.disabled = true;
-    } else {
-      dot.className = 'fb-dot bad';
-      meta.innerHTML = '<strong>Tidak dapat terhubung.</strong> Periksa koneksi internet / URL database. Aplikasi sementara berjalan pada mode lokal.';
-      seedBtn.disabled = true;
-    }
-  }
-
-  async function seedFirebaseFlow() {
-    const st = CFB.data.fbStatus();
-    if (!st.reachable) {
-      CFB.notify.warning('Firebase tidak terjangkau', 'Periksa koneksi / Rules database lalu coba lagi.');
-      return;
-    }
-    const n = CFB.data.getFacilities().length;
-    const ok = await CFB.confirm({
-      title: 'Unggah data awal ke Firebase?',
-      html: 'Data <strong>' + n + ' fasilitas</strong> beserta kebijakan ketersediaan dari <code>data/*.json</code> akan ditulis ke Realtime Database dan dipakai oleh semua pengunjung situs. Pengajuan yang sudah ada tidak terhapus.',
-      confirmText: 'Ya, unggah'
-    });
-    if (!ok) return;
-    const btn = $('#fbSeedBtn');
-    btn.disabled = true;
-    btn.textContent = 'Mengunggah\u2026';
-    const res = await CFB.data.seedFirebase();
-    if (res.ok) {
-      CFB.notify.success('Data awal terunggah', res.facilities + ' fasilitas + kebijakan ketersediaan tersimpan di Firebase. Mode tersinkon kini aktif.');
-      renderTab();
-    } else {
-      CFB.notify.error('Gagal mengunggah', res.error);
-      updateFirebasePanel();
-    }
-  }
-
   function renderFacilities() {
-    updateFirebasePanel();
     const facilities = CFB.data.getFacilities();
     const st = CFB.data.getFacilityStats();
     $('#facCount').textContent = st.mode === 'firebase'
-      ? facilities.length + ' fasilitas \u00b7 tersinkon Firebase'
-      : facilities.length + ' fasilitas \u00b7 ' + st.created + ' ditambah \u00b7 ' +
-        st.updated + ' diubah \u00b7 ' + st.deleted + ' dihapus';
+      ? facilities.length + ' fasilitas tercatat'
+      : facilities.length + ' fasilitas · ' + st.created + ' ditambah · ' +
+        st.updated + ' diubah · ' + st.deleted + ' dihapus';
     const noteEl = $('#facNote');
     if (noteEl) {
       noteEl.innerHTML = st.mode === 'firebase'
-        ? 'Perubahan langsung ditulis ke <strong>Firebase Realtime Database</strong> sehingga langsung terlihat oleh semua pengguna setelah dimuat ulang. Tombol <em>Reset</em> menimpa data fasilitas di server dengan isi <code>data/facilities.json</code>.'
+        ? 'Perubahan tersimpan secara permanen dan terlihat oleh semua pengguna setelah dimuat ulang. Tombol <em>Kembalikan data awal</em> mengembalikan data fasilitas ke isi <code>data/facilities.json</code>.'
         : 'Perubahan tersimpan di browser (LocalStorage) sebagai lapisan di atas data awal <code>data/facilities.json</code>. Tombol <em>Reset</em> mengembalikan ke isi JSON.';
     }
 
@@ -445,6 +470,7 @@
         '<td>' + f.openHours.start + '\u2013' + f.openHours.end + '</td>' +
         '<td><span class="st ' + sm + '">' + label + '</span></td>' +
         '<td class="actions">' +
+        '  <button type="button" class="btn-icon" data-plan="' + esc(f.id) + '" title="Denah ruangan">' + CFB.icons.grid + '</button>' +
         '  <button type="button" class="btn-icon" data-edit="' + esc(f.id) + '" title="Ubah">' + CFB.icons.edit + '</button>' +
         '  <button type="button" class="btn-icon danger" data-del="' + esc(f.id) + '" title="Hapus">' + CFB.icons.trash + '</button>' +
         '</td></tr>';
@@ -453,6 +479,185 @@
 
     $$('#facTable [data-edit]').forEach(b => b.addEventListener('click', () => openFacilityModal(b.dataset.edit)));
     $$('#facTable [data-del]').forEach(b => b.addEventListener('click', () => deleteFacility(b.dataset.del)));
+    $$('#facTable [data-plan]').forEach(b => b.addEventListener('click', () => openLayoutEditor(b.dataset.plan)));
+  }
+
+  /* ============ Editor Denah Ruangan (drag & drop) ============
+     Admin dapat menata layar, panggung, proyektor, sound, papan tulis,
+     podium, meja, dan pintu; mengatur jumlah bangku serta ukuran ruangan.
+     Tersimpan sebagai `layout` pada objek fasilitas (Firebase / lokal). */
+  async function openLayoutEditor(id) {
+    /* Ambil data fasilitas terkini dari server sebelum menyunting */
+    if (CFB.data.getMode() === 'firebase') { try { await CFB.data.refreshFacilities(); } catch (e) { /* offline */ } }
+    const f = CFB.data.getFacilityById(id);
+    if (!f) return;
+    const ed = { layout: CFB.floorplan.parseLayout(f.layout), sel: null, drag: null };
+    const PALETTE = ['screen', 'stage', 'projector', 'sound', 'whiteboard', 'podium', 'table', 'door'];
+
+    const m = openModal(
+      '<div class="modal-head">' +
+      '  <div><p class="modal-eyebrow">Denah Ruangan</p><h3 class="modal-title">' + esc(f.name) + '</h3></div>' +
+      '</div>' +
+      '<div class="le-editor">' +
+      '  <div class="le-side">' +
+      '    <p class="le-label">Tambah perangkat</p>' +
+      '    <div class="le-palette">' +
+             PALETTE.map(ty =>
+               '<button type="button" class="le-add" data-type="' + ty + '">' +
+               '<span class="le-ico">' + CFB.floorplan.iconSVG(ty) + '</span>' + esc(facTypeLabel(ty)) + '</button>').join('') +
+      '    </div>' +
+      '    <p class="le-label">Properti ruangan</p>' +
+      '    <div class="le-props">' +
+      '      <div class="form-row"><label for="le-seats">Jumlah bangku</label><input id="le-seats" type="number" min="0" max="2000" step="1" value="' + ed.layout.seats + '"></div>' +
+      '      <div class="le-props-2">' +
+      '        <div class="form-row"><label for="le-w">Lebar (m)</label><input id="le-w" type="number" min="6" max="30" step="1" value="' + ed.layout.w + '"></div>' +
+      '        <div class="form-row"><label for="le-h">Kedalaman (m)</label><input id="le-h" type="number" min="5" max="24" step="1" value="' + ed.layout.h + '"></div>' +
+      '      </div>' +
+      '    </div>' +
+      '    <p class="le-label">Item terpasang</p>' +
+      '    <div class="le-items" id="leItems"></div>' +
+      '  </div>' +
+      '  <div class="le-canvas-wrap"><div id="leCanvas" class="le-canvas"></div></div>' +
+      '</div>' +
+      '<p class="le-hint">Tarik (drag) item untuk memindahkannya. Klik item untuk memilih, lalu tekan Hapus item atau tombol Del.</p>' +
+      '<div class="modal-actions">' +
+      '  <button type="button" class="btn-ghost" id="leClear">Kosongkan</button>' +
+      '  <button type="button" class="btn-ghost le-del-btn" id="leDel" disabled>' + CFB.icons.trash + ' Hapus item</button>' +
+      '  <span class="toolbar-spacer"></span>' +
+      '  <button type="button" class="btn-ghost" data-close>Batal</button>' +
+      '  <button type="submit" class="btn-primary" id="leSave">Simpan denah</button>' +
+      '</div>', { wide: true });
+    m.ov.querySelector('.modal-card').classList.add('modal-editor');
+
+    const canvas = m.ov.querySelector('#leCanvas');
+    const delBtn = m.ov.querySelector('#leDel');
+
+    function facTypeLabel(ty) {
+      const map = { screen: 'Layar', stage: 'Panggung', projector: 'Proyektor', sound: 'Sound', whiteboard: 'Papan tulis', podium: 'Podium', table: 'Meja', door: 'Pintu' };
+      return map[ty] || ty;
+    }
+
+    function repaint() {
+      canvas.innerHTML = CFB.floorplan.render(ed.layout, { interactive: true, uid: 'fp-edit', selected: ed.sel }).svg;
+      delBtn.disabled = ed.sel == null;
+      // daftar item
+      const list = m.ov.querySelector('#leItems');
+      list.innerHTML = ed.layout.items.length
+        ? ed.layout.items.map((it, i) =>
+          '<div class="le-item' + (ed.sel === i ? ' on' : '') + '" data-idx="' + i + '">' +
+          '  <span>' + esc(facTypeLabel(it.type)) + ' <small>(' + it.x + ', ' + it.y + ')</small></span>' +
+          '  <button type="button" class="btn-icon danger" data-rm="' + i + '" title="Hapus">' + CFB.icons.close + '</button>' +
+          '</div>').join('')
+        : '<p class="le-empty">Belum ada item — tambahkan dari palet.</p>';
+      bindCanvas();
+      list.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
+        ed.layout.items.splice(+b.dataset.rm, 1);
+        ed.sel = null;
+        repaint();
+      }));
+      list.querySelectorAll('.le-item').forEach(el => el.addEventListener('click', (e) => {
+        if (e.target.closest('[data-rm]')) return;
+        ed.sel = +el.dataset.idx;
+        repaint();
+      }));
+    }
+
+    function bindCanvas() {
+      canvas.querySelectorAll('.fp-item').forEach(g => {
+        g.addEventListener('pointerdown', (ev) => startDrag(ev, +g.dataset.idx));
+      });
+    }
+
+    function startDrag(ev, idx) {
+      ev.preventDefault();
+      ed.sel = idx;
+      repaint();
+      const g = canvas.querySelector('.fp-item[data-idx="' + idx + '"]');
+      if (!g) return;
+      g.setPointerCapture && g.setPointerCapture(ev.pointerId);
+      const rect = canvas.getBoundingClientRect();
+      const scale = rect.width / (ed.layout.w * CFB.floorplan.S);
+      const it = ed.layout.items[idx];
+      const offX = (ev.clientX - rect.left) / scale / CFB.floorplan.S - it.x;
+      const offY = (ev.clientY - rect.top) / scale / CFB.floorplan.S - it.y;
+      canvas.classList.add('dragging');
+
+      const move = (e2) => {
+        const nx = Math.min(ed.layout.w, Math.max(0, (e2.clientX - rect.left) / scale / CFB.floorplan.S - offX));
+        const ny = Math.min(ed.layout.h, Math.max(0, (e2.clientY - rect.top) / scale / CFB.floorplan.S - offY));
+        it.x = Math.round(nx * 2) / 2;
+        it.y = Math.round(ny * 2) / 2;
+        g.setAttribute('transform', 'translate(' + (it.x * CFB.floorplan.S) + ' ' + (it.y * CFB.floorplan.S) + ') rotate(' + it.rot + ')');
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        canvas.classList.remove('dragging');
+        repaint();
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    }
+
+    m.ov.querySelectorAll('.le-add').forEach(b => b.addEventListener('click', () => {
+      const ty = b.dataset.type;
+      if (ed.layout.items.length >= 40) { CFB.notify.warning('Item penuh', 'Maksimal 40 item per denah.'); return; }
+      const n = ed.layout.items.length;
+      ed.layout.items.push({ type: ty, x: (ed.layout.w / 2 + (n % 5) * 0.5) % ed.layout.w, y: ed.layout.h / 2 + Math.floor(n / 5) * 0.6, rot: 0 });
+      ed.sel = ed.layout.items.length - 1;
+      repaint();
+    }));
+
+    const seatsIn = m.ov.querySelector('#le-seats');
+    const wIn = m.ov.querySelector('#le-w');
+    const hIn = m.ov.querySelector('#le-h');
+    seatsIn.addEventListener('input', () => { ed.layout.seats = Math.min(2000, Math.max(0, parseInt(seatsIn.value, 10) || 0)); repaint(); });
+    wIn.addEventListener('change', () => { ed.layout.w = Math.min(30, Math.max(6, parseInt(wIn.value, 10) || 12)); wIn.value = ed.layout.w; repaint(); });
+    hIn.addEventListener('change', () => { ed.layout.h = Math.min(24, Math.max(5, parseInt(hIn.value, 10) || 8)); hIn.value = ed.layout.h; repaint(); });
+
+    delBtn.addEventListener('click', () => {
+      if (ed.sel == null) return;
+      ed.layout.items.splice(ed.sel, 1);
+      ed.sel = null;
+      repaint();
+    });
+    m.ov.querySelector('#leClear').addEventListener('click', () => {
+      ed.layout.items = [];
+      ed.layout.seats = 0;
+      seatsIn.value = 0;
+      ed.sel = null;
+      repaint();
+    });
+    const onKey = (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (ed.sel != null && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+          ed.layout.items.splice(ed.sel, 1);
+          ed.sel = null;
+          repaint();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    const origClose = m.close;
+    m.close = () => { document.removeEventListener('keydown', onKey); origClose(); };
+
+    m.ov.querySelector('[data-close]').addEventListener('click', m.close);
+    m.ov.querySelector('#leSave').addEventListener('click', async () => {
+      const btn = m.ov.querySelector('#leSave');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan…';
+      const obj = Object.assign({}, f, { layout: CFB.floorplan.parseLayout(ed.layout) });
+      const res = await CFB.data.saveFacility(obj);
+      btn.disabled = false;
+      btn.textContent = 'Simpan denah';
+      if (!res.ok) { CFB.notify.error('Gagal menyimpan denah', res.error); return; }
+      m.close();
+      CFB.notify.success('Denah tersimpan', obj.id + ' · denah ' + f.name + ' kini tampil di halaman detail fasilitas.');
+      renderFacilities();
+    });
+
+    repaint();
+    setTimeout(() => m.ov.querySelector('#le-seats').focus(), 80);
   }
 
   function openFacilityModal(id) {
@@ -552,9 +757,9 @@
       }
       m.close();
       CFB.notify.success(f ? 'Fasilitas diperbarui' : 'Fasilitas ditambahkan',
-        obj.id + ' \u00b7 ' + obj.name + (CFB.data.getMode() === 'firebase'
-          ? ' \u2014 tersimpan di Firebase, terlihat oleh semua pengguna.'
-          : ' \u2014 langsung terlihat di sisi pengguna.'));
+        obj.id + ' · ' + obj.name + (CFB.data.getMode() === 'firebase'
+          ? ' — terlihat oleh semua pengguna.'
+          : ' — langsung terlihat di sisi pengguna.'));
       renderFacilities();
     });
     setTimeout(() => m.ov.querySelector('#af-name').focus(), 80);
@@ -568,7 +773,7 @@
       title: 'Hapus fasilitas ini?',
       danger: true,
       html: 'Fasilitas <strong>' + esc(f.name) + '</strong> (' + esc(id) + ') akan dihapus' +
-        (CFB.data.getMode() === 'firebase' ? ' dari <strong>Firebase (untuk semua pengguna)</strong>' : ' dari daftar pada perangkat ini') + '.' +
+        (CFB.data.getMode() === 'firebase' ? ' dari <strong>server (untuk semua pengguna)</strong>' : ' dari daftar pada perangkat ini') + '.' +
         (used ? '<br><br>Terdapat <strong>' + used + ' pengajuan</strong> terkait fasilitas ini \u2014 riwayat tetap tersimpan dengan nama fasilitas.' : ''),
       confirmText: 'Ya, hapus'
     });
@@ -584,7 +789,7 @@
     const ok = await CFB.confirm({
       title: 'Reset ke data awal?',
       html: fb
-        ? 'Data fasilitas di <strong>Firebase</strong> akan ditimpa dengan isi <code>data/facilities.json</code>. Perubahan (tambahan/ubahan/hapusan) di server hilang. Pengajuan tidak terpengaruh.'
+        ? 'Data fasilitas di <strong>server</strong> akan ditimpa dengan isi <code>data/facilities.json</code>. Perubahan (tambahan/ubahan/hapusan) di server hilang. Pengajuan tidak terpengaruh.'
         : 'Semua perubahan admin (tambahan, ubahan, hapusan) akan dibatalkan dan kembali ke isi <code>data/facilities.json</code>. Pengajuan tidak terpengaruh.',
       confirmText: 'Ya, reset'
     });
@@ -593,7 +798,7 @@
     if (!res.ok) { CFB.notify.error('Gagal reset', res.error); return; }
     CFB.notify.success('Data direset',
       res.target === 'firebase'
-        ? 'Fasilitas di Firebase dikembalikan ke data awal.'
+        ? 'Fasilitas di server dikembalikan ke data awal.'
         : 'Kembali ke data awal dari data/facilities.json.');
     renderFacilities();
   }
@@ -648,12 +853,303 @@
     renderDashboard();
   }
 
+  /* ============ Ekspor Laporan Admin — CSV & PDF (Task 9) ============
+     CSV  : JavaScript murni (Blob), pemisah ';' + BOM → ramah Excel ID.
+     PDF  : jsPDF + autotable dimuat dari CDN; bila CDN tak terjangkau,
+     jatuh ke jendela cetak (Simpan sebagai PDF dari dialog cetak). */
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function expStamp() {
+    const d = new Date();
+    return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '-' + pad2(d.getHours()) + pad2(d.getMinutes());
+  }
+
+  function fmtDT(iso) {
+    try { return new Date(iso).toLocaleString('id-ID'); } catch (e) { return String(iso || ''); }
+  }
+
+  /* Format ringkas khusus PDF — kolom sempit agar semua muat tanpa
+     terpotong: tanggal "30 Okt 2026", waktu "29/10/26 18:00". */
+  function expDateShort(iso) {
+    try {
+      const p = CFB.util.dateParts(iso);
+      return p.date + ' ' + p.month + ' ' + iso.slice(0, 4);
+    } catch (e) { return String(iso || ''); }
+  }
+  function expDTShort(iso) {
+    const d = new Date(iso);
+    if (!iso || isNaN(d)) return '';
+    return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + String(d.getFullYear()).slice(2) +
+      ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  /* Putus token panjang tanpa spasi (email / NIM) bila melebihi batas kolom:
+     sisipkan spasi setelah pembatas alami (email: “@”, NIM: “/”) sehingga
+     jsPDF dapat memotong barisnya. Email panjang terpecah rapi menjadi
+     bagian-awal@ dan domain pada baris kedua. */
+  function pdfWrapToken(s, maxChars, seps) {
+    s = String(s || '');
+    if (s.length <= maxChars) return s;
+    const re = new RegExp('([' + seps.replace(/[^\w@./-]/g, '') + '])', 'g');
+    return s.replace(re, '$1 ').replace(/\s+/g, ' ').trim();
+  }
+
+  function expRows() {
+    return CFB.data.getBookings()
+      .slice()
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .map(b => ({
+        id: b.id, facility: b.facilityName, category: b.category || '', location: b.location,
+        date: b.dateLabel || b.date, slot: (b.slotLabel || '') + ' WIB', dur: b.durationHours || 2,
+        status: STATUS_LABEL[b.status] || b.status, statusKey: b.status || 'Pending',
+        statusShort: EXP_STATUS_SHORT[b.status] || b.status || '',
+        dateShort: expDateShort(b.date),
+        slotShort: String(b.slotLabel || '').replace(/\s/g, ''),
+        createdShort: expDTShort(b.createdAt),
+        name: b.name, nim: b.nim, email: b.email, phone: b.phone,
+        participants: b.participants, organization: b.organization || '',
+        purpose: b.purpose || '', notes: b.notes || '',
+        created: fmtDT(b.createdAt), decided: b.decidedAt ? fmtDT(b.decidedAt) : '',
+        rejectReason: b.rejectReason || '', account: b.accountEmail || (b.uid ? 'uid:' + b.uid : '')
+      }));
+  }
+
+  function updateExportButtons(bookings) {
+    const n = (bookings || CFB.data.getBookings()).length;
+    const csv = $('#expCsvBtn'), pdf = $('#expPdfBtn');
+    if (csv) { csv.disabled = !n; csv.title = n ? 'Ekspor ' + n + ' pengajuan ke CSV (Excel)' : 'Belum ada pengajuan untuk diekspor'; }
+    if (pdf) { pdf.disabled = !n; pdf.title = n ? 'Unduh laporan PDF (' + n + ' pengajuan)' : 'Belum ada pengajuan untuk diekspor'; }
+  }
+
+  function downloadBlob(content, mime, filename) {
+    const url = URL.createObjectURL(new Blob([content], { type: mime }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  function csvCell(v) {
+    return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  }
+
+  function exportCSV() {
+    const rows = expRows();
+    if (!rows.length) return;
+    const head = ['No', 'Referensi', 'Fasilitas', 'Kategori', 'Lokasi', 'Tanggal', 'Jam', 'Durasi (jam)', 'Status',
+      'Nama', 'NIM', 'Email', 'Telepon', 'Peserta', 'Organisasi', 'Tujuan', 'Catatan', 'Diajukan', 'Diputuskan',
+      'Alasan penolakan', 'Akun'];
+    const lines = [head.map(csvCell).join(';')];
+    rows.forEach((r, i) => {
+      lines.push([
+        i + 1, r.id, r.facility, r.category, r.location, r.date, r.slot, r.dur, r.status,
+        r.name, r.nim, r.email, r.phone, r.participants, r.organization, r.purpose, r.notes,
+        r.created, r.decided, r.rejectReason, r.account
+      ].map(csvCell).join(';'));
+    });
+    const fname = 'laporan-pengajuan-' + expStamp() + '.csv';
+    downloadBlob('\ufeff' + lines.join('\r\n'), 'text/csv;charset=utf-8', fname);
+    CFB.notify.success('Laporan CSV terunduh', rows.length + ' pengajuan · ' + fname);
+  }
+
+  /* --- PDF: muat jsPDF + autotable dari CDN (sekali), fallback cetak --- */
+  const PDF_CDN = [
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
+  ];
+  let pdfLibPromise = null;
+
+  function loadScript(src, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      const timer = setTimeout(() => { s.remove(); reject(new Error('timeout')); }, timeoutMs || 8000);
+      s.onload = () => { clearTimeout(timer); resolve(); };
+      s.onerror = () => { clearTimeout(timer); s.remove(); reject(new Error('load-error')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function ensurePdfLib() {
+    if (pdfLibPromise) return pdfLibPromise;
+    pdfLibPromise = (async () => {
+      if (!(window.jspdf && window.jspdf.__cfb)) {
+        await loadScript(PDF_CDN[0]);
+        await loadScript(PDF_CDN[1]);
+        window.jspdf.__cfb = true;
+      }
+    })().catch(e => { pdfLibPromise = null; throw e; });
+    return pdfLibPromise;
+  }
+
+  function exportPDF() {
+    const rows = expRows();
+    if (!rows.length) return;
+    const btn = $('#expPdfBtn');
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    ensurePdfLib().then(() => {
+      buildPdf(rows);
+      CFB.notify.success('Laporan PDF terunduh', rows.length + ' pengajuan · ' + 'laporan-pengajuan-' + expStamp() + '.pdf');
+    }).catch(() => {
+      printFallback(rows);   // CDN tak terjangkau → dialog cetak (Simpan sebagai PDF)
+    }).finally(() => {
+      btn.classList.remove('is-loading');
+      updateExportButtons();
+    });
+  }
+
+  const STATUS_RGB = { Pending: [217, 119, 6], Approved: [22, 163, 74], Rejected: [220, 38, 38] };
+
+  /* Lebar kolom PDF (mm, landscape A4, margin kiri/kanan 9 → konten 279).
+     SEMUA kolom diberi lebar eksplisit agar kolom Peminjam/NIM/Email tidak
+     terjepit (bug lama: kolom 5-8 dibuat auto → Peminjam hanya 3,5 mm dan
+     nama terpotong per huruf). Total lebar = 277 mm ≤ 279 mm. */
+  function buildPdf(rows) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const generated = new Date().toLocaleString('id-ID');
+    const nPend = rows.filter(r => r.statusKey === 'Pending').length;
+    const nApp = rows.filter(r => r.statusKey === 'Approved').length;
+    const nRej = rows.filter(r => r.statusKey === 'Rejected').length;
+
+    // Header biru — tanpa menyebut sumber data (teks teknis disembunyikan)
+    doc.setFillColor(30, 58, 138);
+    doc.rect(0, 0, 297, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+    doc.text('Laporan Pengajuan Peminjaman', 12, 8.5);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.text('Gamaspace  \u00b7  Dibuat: ' + generated, 12, 15);
+
+    // KPI ringkas
+    doc.setTextColor(51, 65, 85);
+    doc.setFontSize(10);
+    doc.text('Total ' + rows.length + ' pengajuan    |    Menunggu ' + nPend + '    |    Disetujui ' + nApp + '    |    Ditolak ' + nRej, 12, 28);
+
+    // Tabel utama (seluruh pengajuan) — nilai ringkas, lebar kolom eksplisit
+    doc.autoTable({
+      startY: 32,
+      margin: { left: 9, right: 9, top: 24, bottom: 16 },
+      head: [['Referensi', 'Fasilitas', 'Tanggal', 'Jam (WIB)', 'Status', 'Peminjam', 'NIM', 'Email', 'Pes.', 'Organisasi', 'Diajukan']],
+      body: rows.map(r => [
+        r.id, r.facility,
+        r.dateShort, r.slotShort, r.statusShort,
+        r.name, pdfWrapToken(r.nim, 20, '/'), pdfWrapToken(r.email, 33, '@'),
+        r.participants, r.organization, r.createdShort
+      ]),
+      styles: { fontSize: 7, cellPadding: 1.7, lineColor: [226, 232, 240], lineWidth: 0.2, textColor: [51, 65, 85], overflow: 'linebreak' },
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
+      alternateRowStyles: { fillColor: [244, 247, 252] },
+      columnStyles: {
+        0: { cellWidth: 28 },   // Referensi (17 kar.)
+        1: { cellWidth: 30 },   // Fasilitas (spasi → wrap 2 baris bila perlu)
+        2: { cellWidth: 24 },   // Tanggal "30 Okt 2026"
+        3: { cellWidth: 21 },   // Jam "09:00–11:00"
+        4: { cellWidth: 19 },   // Status ringkas + warna
+        5: { cellWidth: 28 },   // Peminjam (kata terpanjang ~8 kar.)
+        6: { cellWidth: 28 },   // NIM 18-19 kar. UGM muat 1 baris; >20 wrap
+        7: { cellWidth: 41, fontSize: 6, cellPadding: 1.5 }, // Email 6pt
+        8: { cellWidth: 10, halign: 'center' },               // Peserta
+        9: { cellWidth: 24 },   // Organisasi (wrap spasi)
+        10: { cellWidth: 24 }   // "29/10/26 18:00"
+      },
+      didParseCell: d => {
+        if (d.section === 'body' && d.column.index === 4) {
+          const key = /Disetujui/i.test(d.cell.raw) ? 'Approved' : (/Ditolak/i.test(d.cell.raw) ? 'Rejected' : 'Pending');
+          d.cell.styles.textColor = STATUS_RGB[key];
+          d.cell.styles.fontStyle = 'bold';
+        }
+      },
+      didDrawPage: d => {
+        const page = doc.getNumberOfPages();
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Halaman ' + page + ' \u00b7 Laporan pengajuan \u2014 dibuat ' + generated, 12, 205);
+        doc.text('Gamaspace', 288, 205, { align: 'right' });
+      }
+    });
+
+    // Ringkasan per fasilitas
+    const byFac = {};
+    const facOrder = [];
+    rows.forEach(r => {
+      if (!byFac[r.facility]) { byFac[r.facility] = { t: 0, p: 0, a: 0, rj: 0 }; facOrder.push(r.facility); }
+      const o = byFac[r.facility];
+      o.t++;
+      if (r.statusKey === 'Pending') o.p++;
+      else if (r.statusKey === 'Approved') o.a++;
+      else if (r.statusKey === 'Rejected') o.rj++;
+    });
+    let y = doc.lastAutoTable.finalY + 8;
+    if (y > 165) { doc.addPage(); y = 24; }
+    doc.setTextColor(30, 58, 138);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
+    doc.text('Ringkasan per fasilitas', 12, y);
+    doc.autoTable({
+      startY: y + 4,
+      margin: { left: 9, right: 9, top: 24, bottom: 16 },
+      head: [['Fasilitas', 'Total', 'Menunggu', 'Disetujui', 'Ditolak']],
+      body: facOrder.map(f => [f, byFac[f].t, byFac[f].p, byFac[f].a, byFac[f].rj]),
+      styles: { fontSize: 8, cellPadding: 1.8, lineColor: [226, 232, 240], lineWidth: 0.2, textColor: [51, 65, 85] },
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [244, 247, 252] },
+      columnStyles: { 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' } }
+    });
+
+    doc.save('laporan-pengajuan-' + expStamp() + '.pdf');
+  }
+
+  /* Fallback: dialog cetak browser (pengguna memilih "Simpan sebagai PDF"). */
+  function printFallback(rows) {
+    const w = window.open('', '_blank', 'width=980,height=720');
+    if (!w) {
+      CFB.notify.warning('Popup diblokir', 'Izinkan popup untuk pratinjau cetak, atau gunakan tombol Ekspor CSV.');
+      return;
+    }
+    const nPend = rows.filter(r => r.statusKey === 'Pending').length;
+    const nApp = rows.filter(r => r.statusKey === 'Approved').length;
+    const nRej = rows.filter(r => r.statusKey === 'Rejected').length;
+    const generated = new Date().toLocaleString('id-ID');
+    const trs = rows.map(r =>
+      '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.facility) + '</td><td>' + esc(r.dateShort) + '</td><td>' + esc(r.slotShort) +
+      '</td><td class="st st-' + String(r.statusKey).toLowerCase() + '">' + esc(r.statusShort) + '</td><td>' + esc(r.name) +
+      '</td><td>' + esc(r.nim) + '</td><td>' + esc(r.email) + '</td><td>' + r.participants + '</td><td>' + esc(r.organization) +
+      '</td><td>' + esc(r.createdShort) + '</td></tr>').join('');
+    w.document.write(
+      '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Laporan Pengajuan Peminjaman — Gamaspace</title>' +
+      '<style>' +
+      'body{font-family:Arial,Helvetica,sans-serif;color:#334155;margin:24px;font-size:12px}' +
+      'h1{color:#1E3A8A;font-size:18px;margin:0 0 4px}.meta{color:#64748B;font-size:11px;margin-bottom:14px}' +
+      '.kpi{margin:0 0 14px;font-size:12px}' +
+      'table{border-collapse:collapse;width:100%}' +
+      'th{background:#1E3A8A;color:#fff;padding:5px 7px;text-align:left;font-size:10.5px}' +
+      'td{border-bottom:1px solid #E2E8F0;padding:4px 7px;font-size:10.5px;vertical-align:top;overflow-wrap:anywhere}' +
+      'tr:nth-child(even) td{background:#F4F7FC}' +
+      '.st{font-weight:bold}.st-pending{color:#D97706}.st-approved{color:#16A34A}.st-rejected{color:#DC2626}' +
+      '@media print{body{margin:10mm}}' +
+      '</style></head><body>' +
+      '<h1>Laporan Pengajuan Peminjaman \u2014 Gamaspace</h1>' +
+      '<p class="meta">Dibuat ' + esc(generated) + '</p>' +
+      '<p class="kpi">Total ' + rows.length + ' \u00b7 Menunggu ' + nPend + ' \u00b7 Disetujui ' + nApp + ' \u00b7 Ditolak ' + nRej + '</p>' +
+      '<table><thead><tr><th>Referensi</th><th>Fasilitas</th><th>Tanggal</th><th>Jam (WIB)</th><th>Status</th><th>Peminjam</th><th>NIM</th><th>Email</th><th>Pes.</th><th>Organisasi</th><th>Diajukan</th></tr></thead>' +
+      '<tbody>' + trs + '</tbody></table>' +
+      '<script>window.onload=function(){setTimeout(function(){window.print();},350);}<\/script>' +
+      '</body></html>');
+    w.document.close();
+    w.focus();
+  }
+
   async function seedDemoFlow() {
     if (CFB.data.getBookings().length) {
       const ok = await CFB.confirm({
         title: 'Muat data contoh?',
         html: '14 pengajuan contoh akan <strong>ditambahkan</strong> ke data yang ada (data lama tidak terhapus)' +
-          (CFB.data.getMode() === 'firebase' ? ' dan tersimpan di <strong>Firebase</strong> (terlihat semua pengguna)' : '') +
+          (CFB.data.getMode() === 'firebase' ? ' dan terlihat oleh semua pengguna' : '') +
           '. Digunakan untuk melihat tampilan analitik.',
         confirmText: 'Ya, muat data contoh'
       });
@@ -664,18 +1160,45 @@
 
   // ============ Bind & Init ============
   function bind() {
-    $('#gateForm').addEventListener('submit', tryLogin);
-    $('#gateCode').addEventListener('input', () => {
-      $('#gateError').hidden = true;
-      $('#gateCode').classList.remove('invalid');
-      const row = $('#gateCode').closest('.form-row');
-      if (row) row.classList.remove('has-error');
+    /* Gate login (RBAC) — email + kata sandi (tanpa Google) */
+    let gateMode = 'login'; // 'login' | 'register'
+    const gateSwitch = $('#gateSwitch');
+    const gateSubmit = $('#gateSubmit');
+    gateSwitch.addEventListener('click', () => {
+      gateMode = (gateMode === 'login') ? 'register' : 'login';
+      $('#gatePass').setAttribute('autocomplete', gateMode === 'login' ? 'current-password' : 'new-password');
+      gateSubmit.textContent = gateMode === 'login' ? 'Masuk' : 'Daftar';
+      gateSwitch.innerHTML = gateMode === 'login'
+        ? 'Belum punya akun admin? <strong>Daftar</strong>'
+        : 'Sudah punya akun admin? <strong>Masuk</strong>';
+      gateError('');
     });
+    $('#gateForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = $('#gateEmail').value.trim();
+      const pass = $('#gatePass').value;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { gateError('Masukkan alamat email yang valid.'); return; }
+      if (!pass || pass.length < 6) { gateError('Kata sandi minimal 6 karakter.'); return; }
+      doGateLogin(
+        () => (gateMode === 'login'
+          ? CFB.auth.signInEmail(email, pass)
+          : CFB.auth.signUpEmail(email, pass, '')),
+        gateSubmit
+      );
+    });
+    $('#gateEmail').addEventListener('input', () => gateError(''));
+    $('#gatePass').addEventListener('input', () => gateError(''));
+    $('#gdRetry').addEventListener('click', () => location.reload());
+
     $('#logoutBtn').addEventListener('click', async () => {
-      sessionStorage.removeItem(GATE_KEY);
+      try { await (CFB.auth ? CFB.auth.signOut() : Promise.resolve()); } catch (e) { /* noop */ }
       CFB.notify.info('Anda telah keluar', 'Sesi admin ditutup.');
-      showGate();
+      // cfb:auth → handleAuthState menampilkan gate login kembali
     });
+
+    /* Ekspor laporan */
+    $('#expCsvBtn').addEventListener('click', exportCSV);
+    $('#expPdfBtn').addEventListener('click', exportPDF);
 
     $$('.side-nav a').forEach(a => a.addEventListener('click', (e) => {
       e.preventDefault();
@@ -691,21 +1214,19 @@
         title: 'Hapus semua pengajuan?',
         danger: true,
         html: fb
-          ? 'Seluruh <strong>' + CFB.data.getBookings().length + ' pengajuan</strong> akan dihapus dari <strong>Firebase (untuk semua pengguna)</strong>. Tindakan ini tidak dapat dibatalkan.'
+          ? 'Seluruh <strong>' + CFB.data.getBookings().length + ' pengajuan</strong> akan dihapus dari <strong>server (untuk semua pengguna)</strong>. Tindakan ini tidak dapat dibatalkan.'
           : 'Seluruh <strong>' + CFB.data.getBookings().length + ' pengajuan</strong> akan dihapus permanen dari perangkat ini. Tindakan ini tidak dapat dibatalkan.',
         confirmText: 'Ya, hapus semua'
       });
       if (!ok) return;
       const done = await CFB.data.clearBookings();
       if (!done) return;
-      CFB.notify.success('Semua pengajuan dihapus', fb ? 'Data pengajuan pada Firebase telah dikosongkan.' : 'Data pengajuan pada perangkat ini telah dikosongkan.');
+      CFB.notify.success('Semua pengajuan dihapus', fb ? 'Data pengajuan di server telah dikosongkan.' : 'Data pengajuan pada perangkat ini telah dikosongkan.');
       renderBookings();
     });
 
     $('#facAddBtn').addEventListener('click', () => openFacilityModal(null));
     $('#facResetBtn').addEventListener('click', resetToSeed);
-    $('#fbSeedBtn').addEventListener('click', seedFirebaseFlow);
-    $('#fbReloadBtn').addEventListener('click', () => location.reload());
 
     window.addEventListener('hashchange', () => {
       if (!$('#adminShell').hidden) renderTab();
@@ -716,14 +1237,17 @@
     bind();
     try {
       await CFB.data.load();
-      CFB.data.noticeModeOnce();
     } catch (err) {
       console.error(err);
       CFB.notify.error('Data tidak termuat', 'Pastikan diakses lewat HTTP server (lihat README).');
     }
-    updateFirebasePanel();
-    if (sessionStorage.getItem(GATE_KEY) === '1') showShell();
-    else showGate();
+    updateExportButtons();
+
+    /* Auth: event cfb:auth dipancarkan setiap kali status login berubah
+       (termasuk hasil restore sesi oleh SDK). */
+    document.addEventListener('cfb:auth', handleAuthState);
+    handleAuthState();                       // tampilkan gate login lebih dulu
+    if (CFB.auth && CFB.auth.init) CFB.auth.init();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

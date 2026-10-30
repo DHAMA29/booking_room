@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Campus Facility Booking</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
+
+  <!-- ============ GATE (login) ============ -->
+  <div id="adminGate" class="gate-screen" hidden>
+    <div class="gate-card">
+      <div class="gate-brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        </svg>
+        <span>Campus Facility Booking</span>
+        <small>ADMIN PANEL</small>
+      </div>
+      <h1>Masuk sebagai pengelola</h1>
+      <p class="gate-sub">Kelola fasilitas, setujui pengajuan peminjaman, dan pantau statistik pemakaian.</p>
+      <form id="gateForm" class="gate-form" novalidate>
+        <div class="form-row">
+          <label for="gateCode">Kode Akses</label>
+          <input id="gateCode" type="password" placeholder="Masukkan kode akses admin" autocomplete="off" />
+          <p class="field-error" id="gateError" hidden>Kode akses salah. Silakan coba lagi.</p>
+        </div>
+        <button type="submit" class="btn-primary">Masuk</button>
+      </form>
+      <p class="gate-hint">Kode demo: <code>admin123</code> (lihat README) &middot; <a href="index.html">&larr; Kembali ke situs pengguna</a></p>
+    </div>
+  </div>
+
+  <!-- ============ SHELL ============ -->
+  <div id="adminShell" class="admin-shell" hidden>
+    <aside class="admin-side">
+      <div class="side-brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true">
+          <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        </svg>
+        <span>Facility Booking<small>ADMIN PANEL</small></span>
+      </div>
+      <nav class="side-nav" aria-label="Navigasi admin">
+        <a href="#dashboard" data-tab="dashboard">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="#pengajuan" data-tab="pengajuan">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          Pengajuan <span id="pendingBadge" class="badge-count" hidden>0</span>
+        </a>
+        <a href="#fasilitas" data-tab="fasilitas">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M16 8h2a2 2 0 0 1 2 2v12"/><path d="M2 22h20"/><path d="M8 6h4M8 10h4M8 14h4M8 18h4"/></svg>
+          Fasilitas
+        </a>
+      </nav>
+      <div class="side-foot">
+        <a href="index.html" target="_blank" rel="noopener">Lihat situs pengguna &nearr;</a>
+        <button id="logoutBtn" class="btn-ghost" type="button">Keluar</button>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+
+      <!-- ============ TAB: DASHBOARD ============ -->
+      <section id="tab-dashboard" aria-labelledby="dash-title">
+        <div class="page-head">
+          <p class="eyebrow">Dashboard</p>
+          <h1 id="dash-title">Ringkasan pengelolaan</h1>
+          <p class="lede">Statistik pengajuan peminjaman dan pemakaian fasilitas pada perangkat ini.</p>
+        </div>
+        <div class="admin-toolbar">
+          <span id="dashNote" class="muted small"></span>
+          <span class="toolbar-spacer"></span>
+          <button id="seedDemoBtn" class="btn-link" type="button">+ Muat data contoh</button>
+        </div>
+        <div class="stat-row" id="kpiRow"></div>
+        <div class="chart-grid">
+          <div class="chart-block">
+            <h2 class="block-title">Status pengajuan</h2>
+            <div id="chartStatus"></div>
+          </div>
+          <div class="chart-block">
+            <h2 class="block-title">Pengajuan per fasilitas</h2>
+            <div id="chartFacility"></div>
+          </div>
+          <div class="chart-block chart-block-wide">
+            <h2 class="block-title">Pengajuan per tanggal (14 hari ke depan)</h2>
+            <div id="chartDate"></div>
+          </div>
+        </div>
+        <div class="recent-block">
+          <h2 class="block-title">Pengajuan terbaru</h2>
+          <div id="recentList"></div>
+        </div>
+        <p class="muted small" id="dashFootNote">Analitik dihitung dari data pengajuan (LocalStorage) di atas data awal <code>data/*.json</code>. Klik <em>Muat data contoh</em> pada kartu kosong untuk melihat tampilan analitik.</p>
+      </section>
+
+      <!-- ============ TAB: PENGAJUAN ============ -->
+      <section id="tab-pengajuan" hidden aria-labelledby="bk-title">
+        <div class="page-head">
+          <p class="eyebrow">Pengajuan</p>
+          <h1 id="bk-title">Kelola pengajuan peminjaman</h1>
+          <p class="lede">Tinjau, setujui, atau tolak pengajuan peminjaman dari mahasiswa.</p>
+        </div>
+        <div class="admin-toolbar">
+          <select id="bkFilter" aria-label="Filter status pengajuan">
+            <option value="all">Semua status</option>
+            <option value="Pending">Menunggu Persetujuan</option>
+            <option value="Approved">Disetujui</option>
+            <option value="Rejected">Ditolak</option>
+          </select>
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+              <circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M14 14 L18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <input id="bkSearch" type="text" placeholder="Cari nama, NIM, no. referensi, fasilitas&hellip;" aria-label="Cari pengajuan" autocomplete="off" />
+          </div>
+          <span id="bkCount" class="muted small"></span>
+          <span class="toolbar-spacer"></span>
+          <button id="bkClear" class="btn-link danger" type="button">Hapus semua pengajuan</button>
+        </div>
+        <div id="bkList"></div>
+        <div id="bkEmpty" class="empty-state" hidden>
+          <p class="empty-title">Belum ada pengajuan</p>
+          <p class="empty-hint">Pengajuan dari mahasiswa akan muncul di sini.</p>
+        </div>
+      </section>
+
+      <!-- ============ TAB: FASILITAS ============ -->
+      <section id="tab-fasilitas" hidden aria-labelledby="fac-title">
+        <div class="page-head">
+          <p class="eyebrow">Fasilitas</p>
+          <h1 id="fac-title">Kelola data fasilitas</h1>
+          <p class="lede">Tambah, ubah, atau hapus fasilitas. Perubahan langsung tampil di sisi pengguna.</p>
+        </div>
+        <div class="admin-toolbar">
+          <button id="facAddBtn" class="btn-primary" type="button">+ Tambah Fasilitas</button>
+          <span id="facCount" class="muted small"></span>
+          <span class="toolbar-spacer"></span>
+          <button id="facResetBtn" class="btn-link" type="button">Reset ke data awal (JSON)</button>
+        </div>
+
+        <!-- Panel status & sinkronisasi Firebase -->
+        <div id="fbPanel" class="fb-panel">
+          <div class="fb-status">
+            <span id="fbDot" class="fb-dot"></span>
+            <div class="fb-text">
+              <p class="fb-title">Firebase Realtime Database</p>
+              <p class="fb-meta" id="fbMeta">Memeriksa koneksi&hellip;</p>
+            </div>
+          </div>
+          <div class="fb-actions">
+            <button id="fbSeedBtn" class="btn-primary" type="button" disabled>Unggah data awal (Seed)</button>
+            <button id="fbReloadBtn" class="btn-ghost" type="button">Muat ulang</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table" id="facTable">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nama</th><th>Kategori</th><th>Lokasi</th>
+                <th class="num">Kapasitas</th><th>Jam</th><th>Status</th><th class="actions">Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted small" id="facNote">Perubahan tersimpan di browser (LocalStorage) sebagai lapisan di atas data awal <code>data/facilities.json</code>. Tombol <em>Reset</em> mengembalikan ke isi JSON.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="assets/js/core.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

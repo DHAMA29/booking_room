@@ -1,5 +1,5 @@
 /* ============================================
-   Campus Facility Booking — Core (dipakai user & admin)
+   Gamaspace — Core (dipakai user & admin)
    Isi: util, storage wrapper, notifikasi card (toast),
    modal konfirmasi animasi, validator UGM (NIM/email/+62)
    ============================================ */
@@ -25,12 +25,18 @@ window.CFB = window.CFB || {};
     nowHour() { return new Date().getHours(); },
     dateParts(ds) {
       const d = new Date(ds + 'T00:00:00');
+      const loc = (window.CFB.i18n) ? CFB.i18n.locale() : 'id-ID';
       return {
-        day: d.toLocaleDateString('id-ID', { weekday: 'short' }),
+        day: d.toLocaleDateString(loc, { weekday: 'short' }),
         date: d.getDate(),
-        month: d.toLocaleDateString('id-ID', { month: 'short' }),
-        full: d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        month: d.toLocaleDateString(loc, { month: 'short' }),
+        full: d.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
       };
+    },
+    /* Format tanggal-waktu lokal (untuk riwayat & bukti) */
+    fmtDateTime(iso) {
+      const loc = (window.CFB.i18n) ? CFB.i18n.locale() : 'id-ID';
+      try { return new Date(iso).toLocaleString(loc); } catch (e) { return String(iso || ''); }
     },
     /* Paksa ulang animasi CSS pada elemen (untuk transisi antar halaman) */
     animateIn(el, cls) {
@@ -162,11 +168,11 @@ window.CFB = window.CFB || {};
       ov.innerHTML =
         '<div class="modal-card" role="dialog" aria-modal="true">' +
         '  <div class="modal-icon ' + (danger ? 'danger' : '') + '">' + (danger ? ICONS.warning : ICONS.info) + '</div>' +
-        '  <h3 class="modal-title">' + util.esc(opts.title || 'Konfirmasi') + '</h3>' +
+        '  <h3 class="modal-title">' + util.esc(opts.title || (window.CFB.i18n ? CFB.i18n.t('c.confirm') : 'Konfirmasi')) + '</h3>' +
         '  <div class="modal-message">' + (opts.html || util.esc(opts.message || '')) + '</div>' +
         '  <div class="modal-actions">' +
-        '    <button type="button" class="btn-ghost" data-modal-cancel>' + util.esc(opts.cancelText || 'Batal') + '</button>' +
-        '    <button type="button" class="btn-primary' + (danger ? ' btn-danger' : '') + '" data-modal-ok>' + util.esc(opts.confirmText || 'Ya, lanjutkan') + '</button>' +
+        '    <button type="button" class="btn-ghost" data-modal-cancel>' + util.esc(opts.cancelText || (window.CFB.i18n ? CFB.i18n.t('c.cancel') : 'Batal')) + '</button>' +
+        '    <button type="button" class="btn-primary' + (danger ? ' btn-danger' : '') + '" data-modal-ok>' + util.esc(opts.confirmText || (window.CFB.i18n ? CFB.i18n.t('c.ok') : 'Ya, lanjutkan')) + '</button>' +
         '  </div>' +
         '</div>';
       document.body.appendChild(ov);
@@ -189,7 +195,8 @@ window.CFB = window.CFB || {};
     });
   }
 
-  // ============ Validator (format UGM) ============
+  // ============ Validator (format UGM) — pesan melalui i18n ============
+  const T = (k, p) => (window.CFB.i18n ? CFB.i18n.t(k, p) : k);
   const RE = {
     // NIM UGM: tahun(2)/nomor urut(6)/kode program(2-3 huruf)/nomor(5) — contoh: 21/456789/PA/20123
     nim: /^\d{2}\/\d{6}\/[A-Z]{2,3}\/\d{5}$/,
@@ -200,50 +207,50 @@ window.CFB = window.CFB || {};
   const validators = {
     name(v) {
       const s = String(v == null ? '' : v).trim();
-      if (!s) return 'Nama lengkap wajib diisi';
-      if (s.length < 3) return 'Nama minimal 3 karakter';
-      if (s.length > 80) return 'Nama maksimal 80 karakter';
+      if (!s) return T('val.name.req');
+      if (s.length < 3) return T('val.name.min');
+      if (s.length > 80) return T('val.name.max');
       return '';
     },
     nim(v) {
       const s = String(v == null ? '' : v).trim().toUpperCase();
-      if (!s) return 'NIM wajib diisi';
-      if (!RE.nim.test(s)) return 'Format NIM UGM: tahun/nomor/kode/nomor — contoh 21/456789/PA/20123';
+      if (!s) return T('val.nim.req');
+      if (!RE.nim.test(s)) return T('val.nim.format');
       return '';
     },
     email(v) {
       const s = String(v == null ? '' : v).trim();
-      if (!s) return 'Email wajib diisi';
-      if (!RE.emailUgm.test(s)) return 'Gunakan email mahasiswa UGM yang berakhiran @mail.ugm.ac.id';
+      if (!s) return T('val.email.req');
+      if (!RE.emailUgm.test(s)) return T('val.email.format');
       return '';
     },
     phoneLocal(v) {
       const raw = String(v == null ? '' : v).trim();
-      if (!raw) return 'Nomor telepon wajib diisi';
+      if (!raw) return T('val.phone.req');
       const digits = cleanPhoneLocal(raw); // buang tanda hubung/spasi & awalan 0/62
-      if (!RE.phoneLocal.test(digits)) return 'Nomor tidak valid — ketik tanpa awalan 0/62, contoh: 812-3456-7890';
+      if (!RE.phoneLocal.test(digits)) return T('val.phone.format');
       return '';
     },
     participants(v, capacity) {
       const s = String(v == null ? '' : v).trim();
-      if (!s) return 'Jumlah peserta wajib diisi';
+      if (!s) return T('val.part.req');
       const n = parseInt(s, 10);
-      if (isNaN(n) || n < 1) return 'Jumlah peserta minimal 1';
-      if (n > 999) return 'Jumlah peserta maksimal 999';
-      if (capacity && n > capacity) return 'Melebihi kapasitas fasilitas (maks ' + capacity + ' orang)';
+      if (isNaN(n) || n < 1) return T('val.part.min');
+      if (n > 999) return T('val.part.max');
+      if (capacity && n > capacity) return T('val.part.cap', { n: capacity });
       return '';
     },
     organization(v) {
       const s = String(v == null ? '' : v).trim();
-      if (!s) return 'Organisasi / program studi wajib diisi';
-      if (s.length < 2) return 'Minimal 2 karakter';
+      if (!s) return T('val.org.req');
+      if (s.length < 2) return T('val.org.min');
       return '';
     },
     purpose(v) {
       const s = String(v == null ? '' : v).trim();
-      if (!s) return 'Tujuan peminjaman wajib diisi';
-      if (s.length < 15) return 'Jelaskan tujuan minimal 15 karakter';
-      if (s.length > 500) return 'Tujuan maksimal 500 karakter';
+      if (!s) return T('val.purpose.req');
+      if (s.length < 15) return T('val.purpose.min');
+      if (s.length > 500) return T('val.purpose.max');
       return '';
     }
   };

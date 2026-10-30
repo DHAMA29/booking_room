@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ketentuan Peminjaman — Campus Facility Booking</title>
+  <title data-i18n-title="doc.title.terms">Ketentuan Peminjaman — Gamaspace</title>
   <meta name="description" content="Ketentuan dan tata cara peminjaman fasilitas kampus." />
-  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16.png" />
+  <link rel="shortcut icon" href="assets/images/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -16,18 +19,18 @@
   <!-- Header -->
   <header class="site-header">
     <div class="container header-inner">
-      <a href="index.html" class="brand" aria-label="Campus Facility Booking - Beranda">
+      <a href="index.html" class="brand" aria-label="Gamaspace - Beranda">
+        <img class="brand-logo" src="assets/images/logo.png" alt="" onload="this.parentElement.classList.add('has-logo')" onerror="this.remove()" />
         <svg class="brand-mark" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
           <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
           <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
         </svg>
-        <span class="brand-name">Campus Facility Booking</span>
+        <span class="brand-name">Gamaspace</span>
       </a>
       <nav class="main-nav" aria-label="Navigasi utama">
-        <a href="index.html">Fasilitas</a>
-        <a href="index.html#/bookings">Peminjaman Saya</a>
-        <a href="ketentuan.html" class="active">Ketentuan</a>
-        <a href="admin.html">Admin</a>
+        <a href="index.html" data-i18n="nav.facilities">Fasilitas</a>
+        <a href="index.html#/bookings" data-i18n="nav.bookings">Peminjaman Saya</a>
+        <span id="langToggle" class="lang-toggle" role="group" aria-label="Bahasa / Language"></span>
       </nav>
     </div>
   </header>
@@ -35,96 +38,97 @@
   <main class="container main-content">
     <div class="terms-page">
       <div class="page-head">
-        <p class="eyebrow">Ketentuan</p>
-        <h1>Ketentuan Peminjaman Fasilitas</h1>
-        <p class="lede">Berlaku bagi seluruh pengajuan peminjaman fasilitas kampus melalui sistem Campus Facility Booking.</p>
+        <p class="eyebrow" data-i18n="kt.eyebrow">Ketentuan</p>
+        <h1 data-i18n="kt.title">Ketentuan Peminjaman Fasilitas</h1>
+        <p class="lede" data-i18n="kt.lede">Berlaku bagi seluruh pengajuan peminjaman fasilitas kampus melalui sistem Gamaspace.</p>
       </div>
-      <p class="terms-meta">Terakhir diperbarui: Oktober 2026 &middot; Diterbitkan oleh: Unit Pengelola Fasilitas Kampus</p>
+      <p class="terms-meta" data-i18n="kt.meta">Terakhir diperbarui: Oktober 2026 · Diterbitkan oleh: Unit Pengelola Fasilitas Kampus</p>
 
       <div class="terms-section">
-        <h2><span class="tno">01</span> Ketentuan Umum</h2>
-        <p>Peminjaman fasilitas kampus disediakan untuk mendukung kegiatan akademik, organisasi, dan pengembangan minat bakat mahasiswa. Setiap pengajuan diajukan oleh mahasiswa aktif yang bertindak sebagai penanggung jawab kegiatan, sehingga data identitas yang dimasukkan harus akurat dan dapat diverifikasi.</p>
+        <h2><span class="tno">01</span> <span data-i18n="kt.s1.title">Ketentuan Umum</span></h2>
+        <p data-i18n="kt.s1.p1">Peminjaman fasilitas kampus disediakan untuk mendukung kegiatan akademik, organisasi, dan pengembangan minat bakat mahasiswa. Setiap pengajuan diajukan oleh mahasiswa aktif yang bertindak sebagai penanggung jawab kegiatan, sehingga data identitas yang dimasukkan harus akurat dan dapat diverifikasi.</p>
         <ul>
-          <li>Peminjam wajib berstatus <strong>mahasiswa aktif UGM</strong> dan mengisi data dengan NIM serta email mahasiswa (<strong>@mail.ugm.ac.id</strong>) yang valid.</li>
-          <li>Satu pengajuan berlaku untuk satu fasilitas pada satu rentang waktu tertentu.</li>
-          <li>Pengajuan bersifat <em>permohonan</em> &mdash; hak pemakaian hanya diperoleh setelah pengajuan <strong>disetujui</strong> oleh pengelola.</li>
-          <li>Fasilitas berstatus <em>Terbatas</em> dapat diajukan, namun ditinjau lebih ketat.</li>
+          <li data-i18n-html="kt.s1.li1">Peminjam wajib berstatus <strong>mahasiswa aktif UGM</strong> dan mengisi data dengan NIM serta email mahasiswa (<strong>@mail.ugm.ac.id</strong>) yang valid.</li>
+          <li data-i18n="kt.s1.li2">Satu pengajuan berlaku untuk satu fasilitas pada satu rentang waktu tertentu.</li>
+          <li data-i18n-html="kt.s1.li3">Pengajuan bersifat <em>permohonan</em> — hak pemakaian hanya diperoleh setelah pengajuan <strong>disetujui</strong> oleh pengelola.</li>
+          <li data-i18n-html="kt.s1.li4">Fasilitas berstatus <em>Terbatas</em> dapat diajukan, namun ditinjau lebih ketat.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2><span class="tno">02</span> Waktu &amp; Durasi Peminjaman</h2>
-        <p>Setiap fasilitas memiliki jam operasional tersendiri yang tertera pada halaman detail. Di luar jam operasional, fasilitas tidak dapat digunakan. Sistem hanya menampilkan jadwal yang masih berada dalam jangkauan pemesanan.</p>
+        <h2><span class="tno">02</span> <span data-i18n="kt.s2.title">Waktu &amp; Durasi Peminjaman</span></h2>
+        <p data-i18n="kt.s2.p1">Setiap fasilitas memiliki jam operasional tersendiri yang tertera pada halaman detail. Di luar jam operasional, fasilitas tidak dapat digunakan. Sistem hanya menampilkan jadwal yang masih berada dalam jangkauan pemesanan.</p>
         <ul>
-          <li>Durasi peminjaman dapat dipilih bebas antara <strong>1 sampai 2 jam</strong> per pengajuan &mdash; batas maksimal 2 jam.</li>
-          <li>Pengajuan hanya dapat dilakukan untuk jadwal <strong>paling cepat hari ini dan paling lambat 14 hari ke depan</strong>.</li>
-          <li>Jam yang sudah terisi oleh pengajuan lain otomatis tidak dapat dipilih (sistem mencegah dua kegiatan pada jam yang sama).</li>
-          <li>Peminjam dianjurkan hadir <strong>15 menit sebelum</strong> jam mulai; keterlambatan lebih dari 15 menit tanpa kabar dapat membatalkan pemakaian.</li>
-          <li>Ruangan harus dikosongkan paling lambat pada jam selesai agar tidak mengganggu pengguna berikutnya.</li>
+          <li data-i18n-html="kt.s2.li1">Durasi peminjaman dapat dipilih bebas antara <strong>1 sampai 2 jam</strong> per pengajuan — batas maksimal 2 jam.</li>
+          <li data-i18n-html="kt.s2.li2">Pengajuan hanya dapat dilakukan untuk jadwal <strong>paling cepat hari ini dan paling lambat 14 hari ke depan</strong>.</li>
+          <li data-i18n="kt.s2.li3">Jam yang sudah terisi oleh pengajuan lain otomatis tidak dapat dipilih (sistem mencegah dua kegiatan pada jam yang sama).</li>
+          <li data-i18n-html="kt.s2.li4">Peminjam dianjurkan hadir <strong>15 menit sebelum</strong> jam mulai; keterlambatan lebih dari 15 menit tanpa kabar dapat membatalkan pemakaian.</li>
+          <li data-i18n="kt.s2.li5">Ruangan harus dikosongkan paling lambat pada jam selesai agar tidak mengganggu pengguna berikutnya.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2><span class="tno">03</span> Prosedur Pengajuan</h2>
-        <p>Pengajuan dilakukan sepenuhnya melalui sistem mengikuti alur berikut:</p>
+        <h2><span class="tno">03</span> <span data-i18n="kt.s3.title">Prosedur Pengajuan</span></h2>
+        <p data-i18n="kt.s3.p1">Pengajuan dilakukan sepenuhnya melalui sistem mengikuti alur berikut:</p>
         <ol>
-          <li><strong>Explore</strong> &mdash; telusuri dan cari fasilitas yang sesuai kebutuhan (kategori, kapasitas, status).</li>
-          <li><strong>Select</strong> &mdash; buka detail fasilitas untuk membaca deskripsi, perangkat, dan jam operasional.</li>
-          <li><strong>Schedule</strong> &mdash; pilih tanggal, jam mulai, dan durasi (1&ndash;2 jam).</li>
-          <li><strong>Request</strong> &mdash; lengkapi formulir pengajuan (nama, NIM, email UGM, no. HP +62, jumlah peserta, tujuan) lalu kirim.</li>
-          <li><strong>Summary</strong> &mdash; simpan nomor referensi untuk memantau status pengajuan.</li>
+          <li data-i18n-html="kt.s3.li1"><strong>Explore</strong> — telusuri dan cari fasilitas yang sesuai kebutuhan (kategori, kapasitas, status).</li>
+          <li data-i18n-html="kt.s3.li2"><strong>Select</strong> — buka detail fasilitas untuk membaca deskripsi, perangkat, dan jam operasional.</li>
+          <li data-i18n-html="kt.s3.li3"><strong>Schedule</strong> — pilih tanggal, jam mulai, dan durasi (1–2 jam).</li>
+          <li data-i18n-html="kt.s3.li4"><strong>Request</strong> — lengkapi formulir pengajuan (nama, NIM, email UGM, no. HP +62, jumlah peserta, tujuan) lalu kirim.</li>
+          <li data-i18n-html="kt.s3.li5"><strong>Summary</strong> — simpan nomor referensi untuk memantau status pengajuan.</li>
         </ol>
-        <p>Pengajuan yang sudah terkirim berstatus <strong>Menunggu Persetujuan</strong>. Pengelola meninjau paling lambat <strong>2 hari kerja</strong>; hasil keputusan (disetujui / ditolak beserta alasannya) dapat dilihat pada halaman <em>Peminjaman Saya</em>. Pengajuan yang ditolak tidak menghalangi Anda mengajukan ulang pada waktu yang berbeda.</p>
+        <p data-i18n-html="kt.s3.p2">Pengajuan yang sudah terkirim berstatus <strong>Menunggu Persetujuan</strong>. Pengelola meninjau paling lambat <strong>2 hari kerja</strong>; hasil keputusan (disetujui / ditolak beserta alasannya) dapat dilihat pada halaman <em>Peminjaman Saya</em>. Pengajuan yang ditolak tidak menghalangi Anda mengajukan ulang pada waktu yang berbeda.</p>
       </div>
 
       <div class="terms-section">
-        <h2><span class="tno">04</span> Aturan Penggunaan Fasilitas</h2>
-        <p>Selama masa pemakaian, peminjam bertanggung jawab atas ketertiban, kebersihan, dan keamanan fasilitas beserta seluruh perangkat di dalamnya.</p>
+        <h2><span class="tno">04</span> <span data-i18n="kt.s4.title">Aturan Penggunaan Fasilitas</span></h2>
+        <p data-i18n="kt.s4.p1">Selama masa pemakaian, peminjam bertanggung jawab atas ketertiban, kebersihan, dan keamanan fasilitas beserta seluruh perangkat di dalamnya.</p>
         <ul>
-          <li>Gunakan fasilitas <strong>sesuai tujuan</strong> yang dinyatakan pada pengajuan.</li>
-          <li>Dilarang memindahkan perangkat (proyektor, PC, sound system, dsb.) keluar dari ruangan tanpa izin pengelola.</li>
-          <li>Jaga kebersihan; bawa keluar sampah dan kembalikan susunan kursi/meja seperti semula.</li>
-          <li>Dilarang menempelkan dekorasi dengan lakban/paku tanpa izin, serta menggunakan peralatan listrik berdaya tinggi tanpa persetujuan.</li>
-          <li>Kegiatan yang menimbulkan keramaian berlebih wajib memperhatikan fasilitas lain di sekitar.</li>
+          <li data-i18n-html="kt.s4.li1">Gunakan fasilitas <strong>sesuai tujuan</strong> yang dinyatakan pada pengajuan.</li>
+          <li data-i18n="kt.s4.li2">Dilarang memindahkan perangkat (proyektor, PC, sound system, dsb.) keluar dari ruangan tanpa izin pengelola.</li>
+          <li data-i18n="kt.s4.li3">Jaga kebersihan; bawa keluar sampah dan kembalikan susunan kursi/meja seperti semula.</li>
+          <li data-i18n="kt.s4.li4">Dilarang menempelkan dekorasi dengan lakban/paku tanpa izin, serta menggunakan peralatan listrik berdaya tinggi tanpa persetujuan.</li>
+          <li data-i18n="kt.s4.li5">Kegiatan yang menimbulkan keramaian berlebih wajib memperhatikan fasilitas lain di sekitar.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2><span class="tno">05</span> Tanggung Jawab &amp; Sanksi</h2>
-        <p>Kerusakan atau kehilangan perangkat yang terjadi selama masa pemakaian menjadi tanggung jawab peminjam dan/atau organisasi yang diwakilinya, dengan penyelesaian penggantian mengikuti ketentuan kampus.</p>
+        <h2><span class="tno">05</span> <span data-i18n="kt.s5.title">Tanggung Jawab &amp; Sanksi</span></h2>
+        <p data-i18n="kt.s5.p1">Kerusakan atau kehilangan perangkat yang terjadi selama masa pemakaian menjadi tanggung jawab peminjam dan/atau organisasi yang diwakilinya, dengan penyelesaian penggantian mengikuti ketentuan kampus.</p>
         <ul>
-          <li>Pelanggaran ketentuan penggunaan dapat dikenai <strong>sanksi pemblokiran</strong> pengajuan untuk jangka waktu tertentu.</li>
-          <li>Ketidakhadiran dua kali berturut-turut tanpa kabar dapat mengakibatkan pengajuan berikutnya diprioritaskan lebih rendah.</li>
-          <li>Pemalsuan identitas (NIM / email) mengakibatkan penolakan permanen dan dapat diproses lebih lanjut sesuai peraturan disiplin mahasiswa.</li>
+          <li data-i18n-html="kt.s5.li1">Pelanggaran ketentuan penggunaan dapat dikenai <strong>sanksi pemblokiran</strong> pengajuan untuk jangka waktu tertentu.</li>
+          <li data-i18n="kt.s5.li2">Ketidakhadiran dua kali berturut-turut tanpa kabar dapat mengakibatkan pengajuan berikutnya diprioritaskan lebih rendah.</li>
+          <li data-i18n="kt.s5.li3">Pemalsuan identitas (NIM / email) mengakibatkan penolakan permanen dan dapat diproses lebih lanjut sesuai peraturan disiplin mahasiswa.</li>
         </ul>
       </div>
 
       <div class="terms-section">
-        <h2><span class="tno">06</span> Kontak &amp; Bantuan</h2>
-        <p>Pertanyaan seputar pengajuan, perubahan jadwal, atau kendala sistem dapat disampaikan melalui:</p>
+        <h2><span class="tno">06</span> <span data-i18n="kt.s6.title">Kontak &amp; Bantuan</span></h2>
+        <p data-i18n="kt.s6.p1">Pertanyaan seputar pengajuan, perubahan jadwal, atau kendala sistem dapat disampaikan melalui:</p>
         <ul>
-          <li>Email pengelola: <strong>fasilitas@kampus.ac.id</strong> (contoh alamat demo)</li>
-          <li>Sekretariat Unit Pengelola Fasilitas, Gedung Utama Lt. 1 &mdash; hari kerja 08.00&ndash;15.00 WIB</li>
-          <li>Sertakan <strong>nomor referensi pengajuan</strong> (format <code>CFB-YYYYMMDD-XXXX</code>) pada setiap korespondensi.</li>
+          <li data-i18n-html="kt.s6.li1">Email pengelola: <strong>fasilitas@kampus.ac.id</strong> (contoh alamat demo)</li>
+          <li data-i18n="kt.s6.li2">Sekretariat Unit Pengelola Fasilitas, Gedung Utama Lt. 1 — hari kerja 08.00–15.00 WIB</li>
+          <li data-i18n-html="kt.s6.li3">Sertakan <strong>nomor referensi pengajuan</strong> (format <code>GMS-YYYYMMDD-XXXX</code>) pada setiap korespondensi.</li>
         </ul>
       </div>
 
       <div class="terms-cta">
-        <a href="index.html" class="btn-primary">Mulai ajukan peminjaman</a>
-        <a href="index.html#/bookings" class="btn-ghost">Cek status pengajuan saya</a>
+        <a href="index.html" class="btn-primary" data-i18n="kt.cta.start">Mulai ajukan peminjaman</a>
+        <a href="index.html#/bookings" class="btn-ghost" data-i18n="kt.cta.check">Cek status pengajuan saya</a>
       </div>
     </div>
   </main>
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <p>Campus Facility Booking &middot; Prototipe peminjaman fasilitas kampus</p>
+      <p data-i18n="footer.tagline">Gamaspace · Sistem peminjaman fasilitas kampus</p>
       <p class="muted">
-        <a href="index.html">Beranda</a> &middot;
-        <a href="admin.html">Admin Panel</a> &middot;
-        Data awal: <code>data/*.json</code> &middot; Perubahan &amp; pengajuan: LocalStorage
+        <a href="index.html" data-i18n="nav.facilities">Fasilitas</a>
       </p>
     </div>
   </footer>
+
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/core.js"></script>
 </body>
 </html>

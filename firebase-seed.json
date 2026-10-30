@@ -16,6 +16,37 @@
       "openHours": {
         "start": "08:00",
         "end": "16:00"
+      },
+      "layout": {
+        "w": 10,
+        "h": 7,
+        "seats": 40,
+        "items": [
+          {
+            "type": "whiteboard",
+            "x": 5,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "projector",
+            "x": 5,
+            "y": 3.2,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1,
+            "y": 1.2,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 8.5,
+            "y": 6.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-002": {
@@ -34,6 +65,61 @@
       "openHours": {
         "start": "08:00",
         "end": "16:00"
+      },
+      "layout": {
+        "w": 14,
+        "h": 9,
+        "seats": 150,
+        "items": [
+          {
+            "type": "stage",
+            "x": 7,
+            "y": 1.2,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 2.2,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 11.8,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "podium",
+            "x": 8.2,
+            "y": 2.4,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1.2,
+            "y": 2,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 12.8,
+            "y": 2,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 7,
+            "y": 4.6,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 12.3,
+            "y": 8.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-003": {
@@ -52,6 +138,49 @@
       "openHours": {
         "start": "09:00",
         "end": "15:00"
+      },
+      "layout": {
+        "w": 10,
+        "h": 8,
+        "seats": 30,
+        "items": [
+          {
+            "type": "whiteboard",
+            "x": 5,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 2.5,
+            "y": 2.2,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 5,
+            "y": 2.2,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 7.5,
+            "y": 2.2,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 5,
+            "y": 3.6,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 8.5,
+            "y": 7.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-004": {
@@ -70,6 +199,55 @@
       "openHours": {
         "start": "08:00",
         "end": "16:00"
+      },
+      "layout": {
+        "w": 11,
+        "h": 8,
+        "seats": 32,
+        "items": [
+          {
+            "type": "whiteboard",
+            "x": 5.5,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "projector",
+            "x": 5.5,
+            "y": 2.6,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 2.75,
+            "y": 2.4,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 5.5,
+            "y": 2.4,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 8.25,
+            "y": 2.4,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 2.75,
+            "y": 4.2,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 10.55,
+            "y": 7.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-005": {
@@ -88,6 +266,55 @@
       "openHours": {
         "start": "10:00",
         "end": "18:00"
+      },
+      "layout": {
+        "w": 13,
+        "h": 8,
+        "seats": 120,
+        "items": [
+          {
+            "type": "stage",
+            "x": 6.5,
+            "y": 1.1,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 2,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 11,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "podium",
+            "x": 8,
+            "y": 2.2,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1.2,
+            "y": 1.8,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 11.8,
+            "y": 1.8,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 6.5,
+            "y": 7.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-006": {
@@ -105,6 +332,43 @@
       "openHours": {
         "start": "07:00",
         "end": "17:00"
+      },
+      "layout": {
+        "w": 16,
+        "h": 10,
+        "seats": 200,
+        "items": [
+          {
+            "type": "screen",
+            "x": 8,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1.5,
+            "y": 1.6,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 14.5,
+            "y": 1.6,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 2,
+            "y": 0.45,
+            "rot": 90
+          },
+          {
+            "type": "door",
+            "x": 14,
+            "y": 9.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-007": {
@@ -123,6 +387,37 @@
       "openHours": {
         "start": "10:00",
         "end": "18:00"
+      },
+      "layout": {
+        "w": 9,
+        "h": 6,
+        "seats": 16,
+        "items": [
+          {
+            "type": "sound",
+            "x": 1,
+            "y": 1.2,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 8,
+            "y": 1.2,
+            "rot": 0
+          },
+          {
+            "type": "table",
+            "x": 4.5,
+            "y": 3,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 4.5,
+            "y": 5.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-008": {
@@ -140,6 +435,37 @@
       "openHours": {
         "start": "07:00",
         "end": "17:00"
+      },
+      "layout": {
+        "w": 14,
+        "h": 9,
+        "seats": 80,
+        "items": [
+          {
+            "type": "screen",
+            "x": 7,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1.5,
+            "y": 1.6,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 12.5,
+            "y": 1.6,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 7,
+            "y": 8.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-009": {
@@ -160,6 +486,73 @@
       "openHours": {
         "start": "08:00",
         "end": "16:00"
+      },
+      "layout": {
+        "w": 18,
+        "h": 11,
+        "seats": 500,
+        "items": [
+          {
+            "type": "stage",
+            "x": 9,
+            "y": 1.4,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 3,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 15,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "podium",
+            "x": 11,
+            "y": 2.6,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1.5,
+            "y": 1.4,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 16.5,
+            "y": 1.4,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 1.5,
+            "y": 4,
+            "rot": 0
+          },
+          {
+            "type": "sound",
+            "x": 16.5,
+            "y": 4,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 1.6,
+            "y": 10.55,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 16.4,
+            "y": 10.55,
+            "rot": 0
+          }
+        ]
       }
     },
     "FAC-010": {
@@ -179,6 +572,43 @@
       "openHours": {
         "start": "08:00",
         "end": "16:00"
+      },
+      "layout": {
+        "w": 11,
+        "h": 8,
+        "seats": 60,
+        "items": [
+          {
+            "type": "whiteboard",
+            "x": 5.5,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "screen",
+            "x": 5.5,
+            "y": 0.5,
+            "rot": 0
+          },
+          {
+            "type": "projector",
+            "x": 5.5,
+            "y": 2.6,
+            "rot": 0
+          },
+          {
+            "type": "podium",
+            "x": 5.5,
+            "y": 2.2,
+            "rot": 0
+          },
+          {
+            "type": "door",
+            "x": 10.55,
+            "y": 7.55,
+            "rot": 0
+          }
+        ]
       }
     }
   },

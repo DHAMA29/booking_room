@@ -1,5 +1,5 @@
 /* ============================================
-   Campus Facility Booking — Admin Panel Styles
+   Gamaspace — Admin Panel Styles
    Halaman: admin.html (gate, dashboard, pengajuan, fasilitas)
    ============================================ */
 
@@ -127,8 +127,21 @@
   transition: border-color .15s, box-shadow .15s;
 }
 .admin-toolbar select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.admin-toolbar .search-wrap { flex: 1 1 200px; min-width: 180px; max-width: 340px; }
-.admin-toolbar #bkSearch { height: 40px; }
+/* Kolom pencarian: mandiri di admin.css (admin.html tidak memuat app.css).
+   Ikon terposisi absolut di dalam input; lebar cukup agar placeholder utuh. */
+.admin-toolbar .search-wrap { position: relative; flex: 1 1 300px; min-width: 240px; max-width: 440px; }
+.admin-toolbar .search-icon {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-4); pointer-events: none; display: block;
+}
+.admin-toolbar #bkSearch {
+  width: 100%; height: 40px; padding: 0 14px 0 40px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--bg); color: var(--ink); font: inherit; font-size: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.admin-toolbar #bkSearch::placeholder { color: var(--ink-4); }
+.admin-toolbar #bkSearch:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .toolbar-spacer { flex: 1; }
 
 /* ===== Tabel fasilitas ===== */
@@ -171,14 +184,24 @@
 .btn-mini.no { background: var(--danger-soft); color: var(--danger); border-color: #FECACA; }
 .btn-mini.no:hover { background: var(--danger-2); color: #fff; border-color: var(--danger-2); }
 
-/* ===== Baris pengajuan ===== */
-.bk-row { display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; padding: 19px 10px; border-bottom: 1px solid var(--line); align-items: center; border-radius: 6px; transition: background .14s; }
+/* ===== Baris pengajuan =====
+   Informasi utama (fasilitas, jadwal, peminjam, NIM) tampil langsung
+   tanpa perlu membuka modal — tombol mata hanya untuk rincian lengkap. */
+.bk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 20px; padding: 16px 10px; border-bottom: 1px solid var(--line); align-items: center; border-radius: 6px; transition: background .14s; }
 .bk-row:hover { background: var(--line-2); }
 .bk-info { min-width: 0; }
-.bk-title { font-size: 15.5px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+.bk-title { font-size: 15.5px; font-weight: 600; color: var(--ink); margin: 0 0 7px; letter-spacing: -.01em; }
 .bk-title small { font-weight: 400; color: var(--ink-3); font-size: 12.5px; margin-left: 8px; }
-.bk-sub { font-size: 13px; color: var(--ink-3); margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 0; }
-.bk-sub span { display: inline-flex; align-items: center; }
+/* Baris meta: tanggal · jam · durasi · peserta */
+.bk-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; color: var(--ink-3); margin: 0 0 7px; }
+.bk-meta .bm-sep { color: var(--ink-4); font-size: 11px; }
+.bk-meta .bm-time { font-variant-numeric: tabular-nums; }
+/* Baris peminjam: nama · NIM · organisasi */
+.bk-person { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; color: var(--ink-3); margin: 0 0 7px; }
+.bk-person .bp-sep { color: var(--ink-4); font-size: 11px; }
+.bp-name { font-weight: 600; color: var(--ink); }
+.bp-nim { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--ink-3); }
+.bp-org { color: var(--ink-3); }
 .bk-refline { font-size: 11.5px; color: var(--ink-4); font-family: ui-monospace, Menlo, monospace; margin: 0; }
 .bk-side { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
 .bk-actions { display: flex; gap: 6px; align-items: center; }
@@ -189,25 +212,6 @@
 .dg-item.dg-wide { grid-column: 1 / -1; }
 .dg-label { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
 .dg-value { font-size: 13.5px; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
-
-/* ===== Panel Firebase (tab Fasilitas) ===== */
-.fb-panel {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  flex-wrap: wrap;
-  border: 1px solid var(--line); border-radius: var(--radius-lg);
-  background: var(--bg-soft);
-  padding: 14px 18px; margin: 0 0 18px;
-}
-.fb-status { display: flex; align-items: flex-start; gap: 11px; min-width: 0; flex: 1; }
-.fb-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-.fb-dot.ok { background: var(--success-2); box-shadow: 0 0 0 4px rgba(22, 163, 74, .16); }
-.fb-dot.warn { background: var(--warning-2); box-shadow: 0 0 0 4px rgba(217, 119, 6, .16); }
-.fb-dot.bad { background: var(--danger-2); box-shadow: 0 0 0 4px rgba(220, 38, 38, .16); }
-.fb-text { min-width: 0; }
-.fb-title { margin: 0 0 2px; font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
-.fb-meta { margin: 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.55; overflow-wrap: anywhere; }
-.fb-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-.fb-actions .btn-primary, .fb-actions .btn-ghost { padding: 9px 16px; font-size: 13px; }
 
 /* ===== Responsive ===== */
 @media (max-width: 980px) {
@@ -225,10 +229,100 @@
   .side-foot { margin: 0 0 0 auto; padding: 0; border: none; flex-direction: row; align-items: center; }
   .side-foot .btn-ghost { padding: 7px 11px; font-size: 12.5px; }
   .admin-main { padding: 26px 18px 60px; }
+  .admin-toolbar .search-wrap { flex-basis: 100%; max-width: none; }
   .stat-item { padding: 0 16px; min-width: 100px; }
   .stat-item .si-value { font-size: 23px; }
   .vbar-chart { gap: 4px; }
   .bk-side { flex-direction: column; align-items: flex-end; }
   .recent-side { flex-direction: column; align-items: flex-end; gap: 6px; }
   .detail-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================
+   EDITOR DENAH RUANGAN (drag & drop)
+   ============================================ */
+.modal-editor { max-width: 980px; }
+.le-editor { display: grid; grid-template-columns: 256px minmax(0, 1fr); gap: 18px; align-items: start; }
+.le-label { margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.le-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.le-add {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); background: var(--bg); border-radius: 8px;
+  padding: 7px 9px; font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  transition: border-color .14s, background .14s, color .14s;
+}
+.le-add:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.le-add .le-ico { width: 32px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.le-add .le-ico svg { width: 100%; height: 100%; }
+.le-props .form-row { margin-bottom: 10px; }
+.le-props-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.le-items { display: flex; flex-direction: column; gap: 4px; max-height: 190px; overflow-y: auto; }
+.le-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 8px 6px 10px; font-size: 12.5px; cursor: pointer;
+  transition: border-color .14s, background .14s;
+}
+.le-item:hover { border-color: var(--ink-4); }
+.le-item.on { border-color: var(--accent); background: var(--accent-soft); }
+.le-item small { color: var(--ink-4); font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+.le-item .btn-icon { width: 24px; height: 24px; margin-left: 0; }
+.le-empty { font-size: 12.5px; color: var(--ink-4); margin: 0; }
+.le-canvas-wrap {
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg-soft); padding: 10px; position: sticky; top: 0;
+}
+.le-canvas { border-radius: 6px; }
+.le-canvas.dragging { user-select: none; }
+.le-canvas .fp-item { cursor: grab; }
+.le-canvas.dragging .fp-item { cursor: grabbing; }
+.le-hint { margin: 12px 0 0; font-size: 12.5px; color: var(--ink-3); }
+.le-del-btn { color: var(--danger); }
+.le-del-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+@media (max-width: 860px) {
+  .le-editor { grid-template-columns: 1fr; }
+  .le-canvas-wrap { position: static; }
+}
+
+/* ============================================
+   GATE ADMIN — login email + kata sandi (RBAC)
+   ============================================ */
+.gate-form .form-row { margin-bottom: 10px; }
+.gate-form .field-error { margin: 6px 0 10px; }
+.gate-switch {
+  display: block; width: 100%; margin-top: 14px;
+  background: none; border: none; padding: 2px;
+  font-size: 13px; color: var(--ink-3); text-align: center; cursor: pointer;
+}
+.gate-switch strong { color: var(--accent); font-weight: 600; }
+.gate-switch:hover strong { text-decoration: underline; }
+.gate-state {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 26px 0 10px; color: var(--ink-3); font-size: 14px;
+}
+#gateDenied h1 { color: #B91C1C; }
+.gd-icon {
+  width: 52px; height: 52px; border-radius: 14px; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--danger-soft); color: var(--danger);
+}
+.gd-how {
+  text-align: left; background: var(--bg-soft); border: 1px dashed var(--line);
+  border-radius: 10px; padding: 12px 14px; margin: 14px 0;
+  font-size: 12.5px; color: var(--ink-3); line-height: 1.6;
+}
+.gd-how ol { margin: 6px 0 0; padding-left: 18px; }
+.gd-how li { margin-bottom: 4px; }
+.gd-actions { display: flex; align-items: center; gap: 14px; justify-content: center; }
+.gd-actions a { font-size: 12.5px; color: var(--ink-3); }
+.admin-who {
+  margin: 0 0 8px; font-size: 11.5px; color: var(--ink-3);
+  line-height: 1.5; word-break: break-all;
+}
+.admin-who strong { color: var(--ink-2); }
+.aw-tag {
+  display: inline-block; margin-left: 4px; padding: 1px 7px;
+  background: var(--accent-soft); color: var(--accent);
+  border-radius: 999px; font-size: 10px; font-weight: 700;
 }

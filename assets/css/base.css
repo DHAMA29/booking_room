@@ -1,5 +1,5 @@
 /* ============================================
-   Campus Facility Booking — Base Styles
+   Gamaspace — Base Styles
    Design: clean & professional, solid white bg,
    minimal card, animasi halus (reduced-motion aware)
    Dipakai bersama oleh: index.html, admin.html, ketentuan.html
@@ -87,6 +87,13 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .brand-mark { color: var(--accent); flex-shrink: 0; }
 .brand-name { font-size: 16px; letter-spacing: -.01em; }
 
+/* Logo kustom (assets/images/logo.svg): bila file ada, gambar dipakai
+   dan ikon rumah default disembunyikan; bila tidak ada, kembali ke ikon
+   default tanpa error. Tinggi tampil 28px — sediakan SVG atau PNG ≥300px. */
+.brand-logo { display: none; height: 28px; width: auto; flex-shrink: 0; object-fit: contain; }
+.has-logo > .brand-logo { display: block; }
+.has-logo > .brand-mark { display: none; }
+
 .main-nav { display: flex; gap: 26px; align-items: center; }
 .main-nav a {
   color: var(--ink-2); font-size: 14px; font-weight: 500; text-decoration: none;
@@ -120,6 +127,16 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .btn-primary:disabled { background: var(--ink-4); color: #fff; cursor: not-allowed; }
 .btn-primary.btn-danger { background: var(--danger); }
 .btn-primary.btn-danger:hover:not(:disabled) { background: var(--danger-2); box-shadow: 0 4px 12px rgba(220, 38, 38, .22); }
+
+/* Tombol saat memproses — spinner bersih di dalam tombol (revisi 3) */
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-spinner {
+  width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff;
+  animation: spin .7s linear infinite;
+}
+.btn-primary.is-loading { pointer-events: none; }
+.btn-primary.is-loading:disabled { background: var(--accent); opacity: .88; box-shadow: none; transform: none; }
 .btn-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   background: var(--bg); color: var(--ink-2); border: 1px solid var(--line);
@@ -273,19 +290,6 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .empty-title { font-size: 17px; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
 .empty-hint { font-size: 14px; color: var(--ink-3); margin: 0 0 16px; }
 
-/* ===== Mode pill (badge sumber data: Firebase / lokal) ===== */
-.mode-pill {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 12px; font-weight: 600; line-height: 1;
-  padding: 5px 11px; border-radius: 999px;
-  vertical-align: middle; white-space: nowrap;
-}
-.mode-pill .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.mode-pill.mode-fb { color: var(--success); background: var(--success-soft); border: 1px solid #BBF7D0; }
-.mode-pill.mode-fb .dot { background: var(--success-2); box-shadow: 0 0 0 3px rgba(22, 163, 74, .15); }
-.mode-pill.mode-local { color: var(--warning); background: var(--warning-soft); border: 1px solid #FDE68A; }
-.mode-pill.mode-local .dot { background: var(--warning-2); box-shadow: 0 0 0 3px rgba(217, 119, 6, .15); }
-
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -296,3 +300,119 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
   }
   .st-in { opacity: 1; }
 }
+
+/* ============================================
+   VIEW TRANSITIONS (perpindahan antar halaman SPA)
+   Cross-fade + geser halus; dihormati prefers-reduced-motion.
+   ============================================ */
+@keyframes vtOut { to { opacity: 0; transform: translateY(-8px); } }
+@keyframes vtIn { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: vtOut .2s var(--ease) both; }
+  ::view-transition-new(root) { animation: vtIn .28s var(--ease) both; }
+}
+
+/* ===== Toggle bahasa (ID/EN) ===== */
+.lang-toggle {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: var(--line-2); border-radius: 999px; padding: 3px;
+}
+.lang-toggle button {
+  border: none; background: transparent; cursor: pointer;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+  color: var(--ink-3); padding: 4px 9px; border-radius: 999px;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.lang-toggle button:hover { color: var(--ink); }
+.lang-toggle button.on { background: #fff; color: var(--accent); box-shadow: var(--shadow-sm); }
+
+/* ===== Auth (header + modal login) ===== */
+.btn-login {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--bg); border: 1px solid var(--line); color: var(--ink-2);
+  font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.btn-login:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.btn-login:disabled { opacity: .6; cursor: wait; }
+
+.auth-wrap { position: relative; display: inline-flex; }
+.auth-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 11px 4px 5px; font-size: 13px; font-weight: 600; color: var(--ink);
+  cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  max-width: 200px;
+}
+.auth-chip:hover { border-color: var(--ink-4); }
+.auth-ava { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.auth-ava-txt {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 12px; font-weight: 700;
+}
+.auth-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-menu {
+  position: absolute; right: 0; top: calc(100% + 10px);
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: var(--shadow-lg); padding: 13px 14px 12px;
+  min-width: 220px; z-index: 80;
+  animation: popIn .18s var(--ease-bounce);
+}
+.auth-menu .am-name { margin: 0 0 1px; font-weight: 600; font-size: 14px; color: var(--ink); }
+.auth-menu .am-mail { margin: 0 0 10px; font-size: 12px; color: var(--ink-3); overflow-wrap: anywhere; }
+.auth-menu button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; font-size: 13px; font-weight: 600;
+  color: var(--ink-2); transition: background .14s, border-color .14s, color .14s;
+}
+.auth-menu button + button { margin-top: 7px; }
+.auth-menu button:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.auth-menu button.am-item-danger { color: var(--danger); }
+.auth-menu button.am-item-danger:hover { background: var(--danger-soft); border-color: #FECACA; color: var(--danger); }
+
+.auth-modal { max-width: 400px; position: relative; }
+.auth-modal .am-close { position: absolute; top: 14px; right: 14px; }
+.auth-modal .am-sub { margin: -2px 0 16px; font-size: 13px; color: var(--ink-3); line-height: 1.55; }
+.btn-google {
+  display: flex; width: 100%; align-items: center; justify-content: center; gap: 10px;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 11px 14px; font-size: 14px; font-weight: 600; color: var(--ink);
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.btn-google:hover:not(:disabled) { background: var(--bg-soft); border-color: var(--ink-4); }
+.btn-google:disabled { opacity: .6; cursor: wait; }
+.am-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--ink-4); font-size: 12px; }
+.am-divider::before, .am-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.auth-modal .form-row { margin-bottom: 12px; }
+.am-error {
+  margin: 0 0 10px; font-size: 12.5px; color: var(--danger);
+  background: var(--danger-soft); border: 1px solid #FECACA;
+  border-radius: 8px; padding: 8px 10px; line-height: 1.5;
+}
+.am-submit { width: 100%; margin-top: 4px; }
+.am-switch {
+  display: block; width: 100%; background: none; border: none;
+  margin-top: 14px; font-size: 13px; color: var(--ink-3); cursor: pointer; padding: 6px;
+}
+.am-switch:hover { color: var(--accent); }
+
+/* ===== Denah ruangan (dipakai user & admin) ===== */
+.fp-svg { width: 100%; height: auto; display: block; border-radius: 6px; }
+.fp-chair rect { fill: #fff; stroke: #A9BCD6; stroke-width: 1.5; }
+.fp-chair line { stroke: #A9BCD6; stroke-width: 1.5; stroke-linecap: round; }
+.fp-item.fp-sel { filter: drop-shadow(0 0 5px rgba(29, 78, 216, .65)); }
+
+@media (max-width: 640px) {
+  .auth-chip { max-width: 150px; }
+}
+
+/* ===== Auth gate transaksi final (Task 9) ===== */
+.am-warn {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px;
+  padding: 10px 12px; margin: 4px 0 14px;
+  font-size: 12.5px; color: #92400E; line-height: 1.55;
+}
+.am-actions { margin-top: 4px; }

@@ -1,5 +1,5 @@
 /* ============================================
-   Campus Facility Booking — App Styles (Sisi Pengguna)
+   Gamaspace — App Styles (Sisi Pengguna)
    Halaman: Explore, Detail, Schedule, Request, Summary,
    Peminjaman Saya, Ketentuan
    ============================================ */
@@ -133,11 +133,17 @@
 .time-slot[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); box-shadow: 0 0 0 1px var(--accent); animation: popIn .25s var(--ease-bounce); }
 .time-slot.taken, .time-slot.past { color: var(--ink-4); background: var(--line-2); cursor: not-allowed; text-decoration: line-through; }
 .time-slot:disabled { cursor: not-allowed; }
-.slot-legend { display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--ink-3); }
+/* Revisi 1: jam yang termasuk rentang durasi terpilih ikut terkunci */
+.time-slot.consumed {
+  border: 1px dashed #BFDBFE; background: var(--accent-soft);
+  color: var(--accent); opacity: .68; cursor: not-allowed;
+}
+.slot-legend { display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--ink-3); flex-wrap: wrap; }
 .slot-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .slot-legend i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--line); display: inline-block; }
 .slot-legend i.l-taken { background: var(--line-2); border-color: var(--line); }
 .slot-legend i.l-free { background: var(--bg); }
+.slot-legend i.l-consumed { background: var(--accent-soft); border: 1px dashed #BFDBFE; }
 
 /* Pemilih durasi */
 .dp-options { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -176,24 +182,33 @@
 
 .booking-form { display: grid; gap: 20px; max-width: 720px; }
 
-/* Kartu saran ruang */
+/* Kartu saran ruang — flat, profesional, tanpa kotak bersarang (revisi 2) */
 .suggest-card {
-  border: 1px solid #FDE68A; border-left: 3px solid var(--warning-2);
-  background: var(--warning-soft); border-radius: 0 10px 10px 0;
-  padding: 15px 18px 16px;
+  border: 1px solid var(--line); border-left: 3px solid var(--accent-2);
+  background: var(--bg-soft); border-radius: 0 10px 10px 0;
+  padding: 16px 20px 4px;
 }
-.suggest-card .sg-title { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--warning); }
-.suggest-card .sg-text { margin: 0 0 4px; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
-.suggest-card .sg-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.suggest-card .sg-eyebrow { margin: 0 0 5px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.suggest-card .sg-title { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.suggest-card .sg-title svg { color: var(--accent-2); flex-shrink: 0; }
+.suggest-card .sg-text { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.65; }
+.suggest-card .sg-text strong { color: var(--ink); }
+.suggest-card .sg-list { list-style: none; margin: 12px 0 0; padding: 0; }
 .suggest-card .sg-item {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  padding: 9px 12px; background: #fff; border: 1px solid #FDE68A;
-  border-radius: 8px; transition: border-color .15s, transform .15s;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 11px 0; border-top: 1px solid var(--line);
 }
-.suggest-card .sg-item:hover { border-color: var(--warning-2); transform: translateX(2px); }
-.suggest-card .sg-name { font-size: 13.5px; font-weight: 600; color: var(--ink); display: block; }
-.suggest-card .sg-meta { font-size: 12px; color: var(--ink-3); display: block; }
-.suggest-card .sg-item a { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.suggest-card .sg-item:last-child { padding-bottom: 14px; }
+.suggest-card .sg-name { font-size: 13.5px; font-weight: 600; color: var(--ink); display: block; transition: color .14s; }
+.suggest-card .sg-item:hover .sg-name { color: var(--accent); }
+.suggest-card .sg-meta { font-size: 12px; color: var(--ink-3); display: block; margin-top: 1px; }
+.suggest-card .sg-link {
+  font-size: 13px; font-weight: 600; color: var(--accent); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.suggest-card .sg-link svg { transition: transform .16s var(--ease); }
+.suggest-card .sg-link:hover { color: var(--accent-2); }
+.suggest-card .sg-link:hover svg { transform: translateX(3px); }
 
 /* Kotak ketentuan di form */
 .terms-box {
@@ -205,6 +220,16 @@
 .terms-box ul { margin: 0 0 10px; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; line-height: 1.7; }
 .terms-box ul li + li { margin-top: 2px; }
 .terms-box .tb-link { font-size: 13.5px; font-weight: 600; }
+
+/* ===== Halaman identitas peminjam (#/profile) ===== */
+.ident-note {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--accent-soft); border: 1px solid #BFDBFE;
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
+}
+.ident-note svg { color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.ident-note p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink-2); }
+#profileFormWrap .form-actions { margin-top: 22px; }
 
 /* ===== Summary ===== */
 .success-hero {
@@ -230,13 +255,43 @@
 .summary-grid .sg-wide { grid-column: 1 / -1; }
 
 /* ===== Peminjaman Saya ===== */
-.booking-item { display: grid; grid-template-columns: 1fr auto; gap: 6px 20px; padding: 22px 10px; border-bottom: 1px solid var(--line); border-radius: 6px; transition: background .15s; }
+/* Revisi 4: item dapat ditekan untuk membuka detail singkat + keterangan status */
+.booking-item { display: grid; grid-template-columns: 1fr auto; gap: 6px 20px; padding: 22px 10px; border-bottom: 1px solid var(--line); border-radius: 6px; transition: background .15s; cursor: pointer; }
 .booking-item:hover { background: var(--line-2); }
-.bi-name { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+.booking-item:hover .bi-name { color: var(--accent); }
+.booking-item:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+.bi-name { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 4px; transition: color .14s; }
 .bi-meta { font-size: 13px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 0; margin: 0; }
 .bi-meta span { display: inline-flex; align-items: center; }
 .bi-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.bi-badge-row { display: inline-flex; align-items: center; gap: 8px; }
+.bi-chevron { display: inline-flex; color: var(--ink-4); transition: transform .28s var(--ease); }
+.booking-item.open .bi-chevron { transform: rotate(180deg); }
 .bi-ref { font-size: 12px; color: var(--ink-4); font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; }
+
+/* Panel detail singkat (terbuka saat item ditekan) */
+.bi-detail-wrap { grid-column: 1 / -1; display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s var(--ease); }
+.booking-item.open .bi-detail-wrap { grid-template-rows: 1fr; }
+.bi-detail { overflow: hidden; min-height: 0; }
+.bi-detail-inner { padding-top: 18px; border-top: 1px dashed var(--line); }
+.bi-note {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px; border-radius: 8px; margin: 0 0 16px;
+  font-size: 13.5px; line-height: 1.65; color: var(--ink-2);
+}
+.bi-note svg { flex-shrink: 0; margin-top: 2px; }
+.bi-note p { margin: 0; }
+.bi-note strong { color: var(--ink); }
+.bi-note-wait { background: var(--warning-soft); border: 1px solid #FDE68A; }
+.bi-note-wait svg { color: var(--warning-2); }
+.bi-note-ok { background: var(--success-soft); border: 1px solid #BBF7D0; }
+.bi-note-ok svg { color: var(--success); }
+.bi-note-no { background: var(--danger-soft); border: 1px solid #FECACA; }
+.bi-note-no svg { color: var(--danger); }
+.bi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 24px; }
+.bi-label { font-size: 11.5px; color: var(--ink-3); margin: 0 0 3px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; }
+.bi-value { font-size: 13.5px; color: var(--ink); margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.bi-value.mono { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; letter-spacing: .03em; }
 
 /* ===== Halaman Ketentuan ===== */
 .terms-page { max-width: 760px; }
@@ -263,9 +318,11 @@
   .detail-name { font-size: 28px; }
   .header-inner { height: auto; min-height: 56px; flex-wrap: wrap; row-gap: 10px; padding: 10px 0; }
   .brand-name { font-size: 14px; }
-  .main-nav { gap: 18px; width: 100%; }
+  .main-nav { gap: 12px 16px; width: 100%; flex-wrap: wrap; row-gap: 8px; }
   .main-nav a { font-size: 13px; }
   .main-nav a.active::after { bottom: -8px; }
+  .lang-toggle { order: 10; margin-left: auto; }
+  #authArea { order: 11; }
   .facility-side { flex-direction: row; justify-content: space-between; align-items: center; grid-column: 1 / -1; }
   .form-grid-2 { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: 1fr; }
@@ -277,9 +334,49 @@
   .date-chips { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
   .dp-options { flex-direction: column; }
   .dp-opt { max-width: none; }
+  .bi-grid { grid-template-columns: 1fr 1fr; }
   .toast-stack { top: 10px; right: 10px; width: calc(100vw - 20px); }
   .form-actions { flex-direction: column-reverse; }
   .form-actions .btn-primary, .form-actions .btn-ghost { width: 100%; }
   .modal-actions { flex-direction: column-reverse; }
   .modal-actions .btn-primary, .modal-actions .btn-ghost { width: 100%; }
+}
+
+/* ===== Denah ruangan (halaman detail) ===== */
+.plan-section { margin-top: 34px; }
+.plan-section .plan-box {
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px; background: var(--bg-soft);
+}
+.plan-section .fp-item { cursor: default; }
+.plan-section .fp-item:hover { opacity: .82; }
+.fp-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fp-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--ink-2);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 999px; padding: 4px 11px;
+}
+.fp-chip svg { color: var(--accent); }
+.fp-chip-seat { color: var(--accent); border-color: #BFDBFE; background: var(--accent-soft); }
+
+/* ===== Kartu bukti pengajuan ===== */
+.proof-row { display: flex; margin-bottom: 8px; }
+.bi-proof-row { display: flex; margin-top: 14px; }
+.btn-proof {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--accent);
+  border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600;
+  transition: border-color .15s, background .15s;
+}
+.btn-proof:hover { border-color: var(--accent); background: var(--accent-soft); }
+.proof-modal { max-width: 760px; }
+.proof-modal .pm-close { position: absolute; top: 14px; right: 14px; }
+.proof-preview {
+  border: 1px solid var(--line); border-radius: 10px;
+  overflow: auto; background: var(--line-2); padding: 10px;
+}
+.proof-preview canvas {
+  width: 100%; height: auto; display: block;
+  border-radius: 8px; background: #fff; box-shadow: var(--shadow-sm);
 }
