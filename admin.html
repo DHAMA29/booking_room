@@ -47,7 +47,7 @@
           <button type="submit" class="btn-primary" id="gateSubmit">Masuk</button>
         </form>
         <button type="button" id="gateSwitch" class="gate-switch">Belum punya akun admin? <strong>Daftar</strong></button>
-        <p class="gate-hint">Akses diberikan kepada akun pengelola terdaftar. <a href="index.html">&larr; Kembali ke situs pengguna</a></p>
+        <p class="gate-hint">Akses diberikan kepada akun pengelola terdaftar. <a href="fasilitas.html">&larr; Kembali ke situs pengguna</a></p>
       </div>
 
       <!-- State: memeriksa akun -->
@@ -61,17 +61,14 @@
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
         </div>
         <h1>Akses ditolak</h1>
-        <p class="gate-sub">Akun <strong id="gdEmail"></strong> belum terdaftar sebagai admin.</p>
+        <p class="gate-sub">Akun <strong id="gdEmail"></strong> belum terdaftar sebagai admin Gamaspace.</p>
         <div class="gd-how">
-          <p>Berikan akses dengan salah satu cara berikut (lihat README untuk rincian):</p>
-          <ol>
-            <li>Isi <code>adminEmails</code> di <code>assets/js/firebase-config.js</code> dengan email Anda, atau</li>
-            <li>Daftarkan email Anda pada node <code>/admins</code> di database.</li>
-          </ol>
+          <p id="gdHowText">Hanya <strong>pengelola utama</strong> yang dapat menambahkan admin baru. Silakan hubungi pengelola utama untuk meminta akses Admin Panel.</p>
+          <p class="gd-contact" id="gdContact" hidden><span>Pengelola utama</span> <strong id="gdRootEmail"></strong></p>
         </div>
         <div class="gd-actions">
-          <button type="button" id="gdRetry" class="btn-primary">Muat ulang</button>
-          <a href="index.html">&larr; Kembali ke situs pengguna</a>
+          <button type="button" id="gdRetry" class="btn-primary">Coba masuk lagi</button>
+          <a href="fasilitas.html">&larr; Kembali ke situs pengguna</a>
         </div>
       </div>
     </div>
@@ -88,48 +85,110 @@
         </svg>
         <span>Gamaspace<small>ADMIN PANEL</small></span>
       </div>
+      <div class="side-clock" id="sideClock">
+        <span class="sc-time" id="scTime">--:--:--</span>
+        <span class="sc-date" id="scDate"></span>
+      </div>
       <nav class="side-nav" aria-label="Navigasi admin">
-        <a href="#dashboard" data-tab="dashboard">
+        <p class="nav-group-label">Ikhtisar</p>
+        <a href="#scanner" data-tab="scanner" class="petugas-only" hidden>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="12" y2="12"/></svg>
+          <span data-i18n="nav.scanner">Scanner</span>
+        </a>
+        <a href="#dashboard" data-tab="dashboard" class="admin-only">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
           Dashboard
         </a>
+        <p class="nav-group-label admin-only">Akun</p>
+        <a href="#admin" data-tab="admin" class="admin-only">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          Admin
+        </a>
+        <a href="#users" data-tab="users" class="admin-only">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Pengguna
+        </a>
+        <p class="nav-group-label">Pengelolaan</p>
         <a href="#pengajuan" data-tab="pengajuan">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
           Pengajuan <span id="pendingBadge" class="badge-count" hidden>0</span>
         </a>
-        <a href="#fasilitas" data-tab="fasilitas">
+        <a href="#fasilitas" data-tab="fasilitas" class="admin-only">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M16 8h2a2 2 0 0 1 2 2v12"/><path d="M2 22h20"/><path d="M8 6h4M8 10h4M8 14h4M8 18h4"/></svg>
           Fasilitas
         </a>
       </nav>
       <div class="side-foot">
-        <p id="adminWho" class="admin-who" hidden></p>
-        <a href="index.html" target="_blank" rel="noopener">Lihat situs pengguna &nearr;</a>
+        <div id="adminWho" class="who-card" hidden>
+          <span class="who-name" id="whoName"></span>
+          <span class="who-email" id="whoEmail"></span>
+          <span class="who-role" id="whoRole" hidden></span>
+        </div>
+        <a href="fasilitas.html" target="_blank" rel="noopener">Lihat situs pengguna &nearr;</a>
         <button id="logoutBtn" class="btn-ghost" type="button">Keluar</button>
       </div>
     </aside>
 
     <main class="admin-main">
 
+      <!-- ============ TAB: SCANNER (hanya peran Petugas Lapangan) ============ -->
+      <section id="tab-scanner" hidden aria-labelledby="scn-title">
+        <div class="page-head">
+          <p class="eyebrow" data-i18n="scn.eyebrow">Scanner</p>
+          <h1 id="scn-title" data-i18n="scn.title">Pindai QR pengambilan kunci</h1>
+          <p class="lede" data-i18n="scn.lede">Pindai QR pada kartu bukti peminjam saat pengambilan kunci.</p>
+        </div>
+        <div class="scanner-grid">
+          <div class="scanner-panel">
+            <div class="cam-frame" id="camFrame">
+              <video id="camVideo" playsinline muted hidden></video>
+              <canvas id="camCanvas" hidden></canvas>
+              <div class="cam-idle" id="camIdle">
+                <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="12" y2="12"/></svg>
+                <p data-i18n="scn.camera.scan.hint">Arahkan QR kartu bukti ke kamera</p>
+              </div>
+              <p class="cam-status" id="camStatus" hidden></p>
+            </div>
+            <div class="cam-actions">
+              <button type="button" id="camToggle" class="btn-primary">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                <span data-i18n="scn.camera.start">Aktifkan Kamera</span>
+              </button>
+            </div>
+            <p class="cam-note" id="camNote" hidden></p>
+            <div class="manual-wrap">
+              <label for="manualCode" data-i18n="scn.manual.label">Fallback: ketik kode pada kartu bukti</label>
+              <div class="manual-row">
+                <input id="manualCode" type="text" autocomplete="off" spellcheck="false" placeholder="Contoh: K7P2XM" data-i18n-ph="scn.manual.ph" maxlength="24" />
+                <button type="button" id="manualCheck" class="btn-ghost-strong" data-i18n="scn.manual.btn">Periksa</button>
+              </div>
+              <p class="field-error" id="scanError" hidden></p>
+            </div>
+          </div>
+          <div class="queue-panel">
+            <div class="queue-block">
+              <h2 class="block-title" data-i18n="scn.queue.title">Antrean hari ini</h2>
+              <div id="queueList"></div>
+            </div>
+            <div class="queue-block">
+              <h2 class="block-title" data-i18n="scn.queue.live.title">Sedang meminjam</h2>
+              <div id="liveList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ TAB: DASHBOARD ============ -->
-      <section id="tab-dashboard" aria-labelledby="dash-title">
+      <section id="tab-dashboard" hidden aria-labelledby="dash-title">
         <div class="page-head">
           <p class="eyebrow">Dashboard</p>
           <h1 id="dash-title">Ringkasan pengelolaan</h1>
-          <p class="lede">Statistik pengajuan peminjaman dan pemakaian fasilitas.</p>
+          <p class="lede">Statistik pengajuan peminjaman dan pemakaian fasilitas — ringkasan cepat untuk pengelola.</p>
         </div>
         <div class="admin-toolbar">
           <span id="dashNote" class="muted small"></span>
           <span class="toolbar-spacer"></span>
           <button id="seedDemoBtn" class="btn-link" type="button">+ Muat data contoh</button>
-          <button id="expCsvBtn" class="btn-ghost" type="button" disabled title="Ekspor seluruh pengajuan ke CSV (Excel)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-            Ekspor CSV
-          </button>
-          <button id="expPdfBtn" class="btn-primary" type="button" disabled title="Unduh laporan PDF (ringkasan + seluruh pengajuan)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-            Ekspor PDF
-          </button>
         </div>
         <div class="stat-row" id="kpiRow"></div>
         <div class="chart-grid">
@@ -142,7 +201,7 @@
             <div id="chartFacility"></div>
           </div>
           <div class="chart-block chart-block-wide">
-            <h2 class="block-title">Pengajuan per tanggal (14 hari ke depan)</h2>
+            <h2 class="block-title" id="chartDateTitle">Pengajuan per tanggal (14 hari ke depan)</h2>
             <div id="chartDate"></div>
           </div>
         </div>
@@ -150,7 +209,88 @@
           <h2 class="block-title">Pengajuan terbaru</h2>
           <div id="recentList"></div>
         </div>
-        <p class="muted small" id="dashFootNote">Analitik dihitung dari data pengajuan (LocalStorage) di atas data awal <code>data/*.json</code>. Klik <em>Muat data contoh</em> pada kartu kosong untuk melihat tampilan analitik.</p>
+        <p class="muted small" id="dashSrcNote"></p>
+      </section>
+
+      <!-- ============ TAB: ADMIN ============ -->
+      <section id="tab-admin" hidden aria-labelledby="adm-title">
+        <div class="page-head">
+          <p class="eyebrow">Admin</p>
+          <h1 id="adm-title">Manajemen admin</h1>
+          <p class="lede">Daftar akun dengan akses Admin Panel — terpisah dari akun pengguna.</p>
+          <p class="page-note" id="admNote">Hanya <strong>pengelola utama</strong> <strong id="rootEmailTxt"></strong> yang dapat menambahkan admin baru — langsung aktif tanpa proses persetujuan.</p>
+        </div>
+        <div class="admin-toolbar">
+          <span id="admCount" class="muted small"></span>
+          <span class="toolbar-spacer"></span>
+          <button id="addAdminBtn" class="btn-primary btn-add-admin" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Tambah Admin
+          </button>
+        </div>
+        <div class="list-head">
+          <span class="lh-label">Email</span>
+          <span class="lh-label lh-right">Peran</span>
+        </div>
+        <div id="admList" class="adm-list"></div>
+        <div id="admEmpty" class="empty-state" hidden>
+          <p class="empty-title">Belum ada admin</p>
+          <p class="empty-hint">Admin ditambahkan oleh pengelola utama melalui tombol Tambah Admin.</p>
+        </div>
+
+        <!-- ===== Petugas Lapangan (bagian terpisah pada tab Admin) ===== -->
+        <div class="ptg-section">
+          <div class="page-head">
+            <p class="eyebrow" data-i18n="role.petugas">Petugas Lapangan</p>
+            <h2>Petugas lapangan</h2>
+            <p class="lede" data-i18n="adm.ptg.lede">Petugas lapangan memegang kunci fasilitas.</p>
+          </div>
+          <div class="admin-toolbar">
+            <span id="ptgCount" class="muted small"></span>
+            <span class="toolbar-spacer"></span>
+            <button id="addPetugasBtn" class="btn-primary btn-add-admin" type="button">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              <span data-i18n="adm.ptg.add">Tambah Petugas</span>
+            </button>
+          </div>
+          <div class="list-head">
+            <span class="lh-label">Email</span>
+            <span class="lh-label lh-right">Peran</span>
+          </div>
+          <div id="ptgList" class="adm-list"></div>
+          <div id="ptgEmpty" class="empty-state" hidden>
+            <p class="empty-title" data-i18n="adm.ptg.empty">Belum ada petugas</p>
+            <p class="empty-hint" data-i18n="adm.ptg.emptyHint">Petugas lapangan ditambahkan oleh pengelola utama.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TAB: PENGGUNA ============ -->
+      <section id="tab-users" hidden aria-labelledby="usr-title">
+        <div class="page-head">
+          <p class="eyebrow">Pengguna</p>
+          <h1 id="usr-title">Akun pengguna</h1>
+          <p class="lede">Email akun pengguna yang terdaftar pada sistem — setiap email tampil satu kali tanpa duplikat.</p>
+        </div>
+        <div class="admin-toolbar">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+              <circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M14 14 L18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <input id="accSearch" type="text" placeholder="Cari email pengguna&hellip;" aria-label="Cari email akun" autocomplete="off" />
+          </div>
+          <span id="accCount" class="muted small"></span>
+        </div>
+        <div class="list-head">
+          <span class="lh-label">Email</span>
+          <span class="lh-label lh-right">Aktivitas terakhir</span>
+        </div>
+        <div id="accList" class="acc-list"></div>
+        <div id="accEmpty" class="empty-state" hidden>
+          <p class="empty-title">Belum ada akun pengguna</p>
+          <p class="empty-hint">Akun pengguna akan terdaftar otomatis setelah masuk ke situs.</p>
+        </div>
       </section>
 
       <!-- ============ TAB: PENGAJUAN ============ -->
@@ -158,14 +298,18 @@
         <div class="page-head">
           <p class="eyebrow">Pengajuan</p>
           <h1 id="bk-title">Kelola pengajuan peminjaman</h1>
-          <p class="lede">Tinjau, setujui, atau tolak pengajuan peminjaman dari mahasiswa.</p>
+          <p class="lede" id="bkLede">Tinjau, setujui, atau tolak pengajuan peminjaman dari mahasiswa.</p>
         </div>
+        <div id="bkReadOnlyBanner" class="ro-banner" hidden data-i18n-html="bkro.banner"></div>
         <div class="admin-toolbar">
           <select id="bkFilter" aria-label="Filter status pengajuan">
             <option value="all">Semua status</option>
             <option value="Pending">Menunggu Persetujuan</option>
             <option value="Approved">Disetujui</option>
+            <option value="Checked-in">Sudah Check-in</option>
+            <option value="Selesai">Selesai</option>
             <option value="Rejected">Ditolak</option>
+            <option value="Cancelled">Dibatalkan</option>
           </select>
           <div class="search-wrap">
             <svg class="search-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
@@ -176,7 +320,28 @@
           </div>
           <span id="bkCount" class="muted small"></span>
           <span class="toolbar-spacer"></span>
-          <button id="bkClear" class="btn-link danger" type="button">Hapus semua pengajuan</button>
+          <div class="export-wrap" id="exportWrap">
+            <button id="expBtn" class="btn-primary" type="button" disabled title="Unduh laporan pengajuan">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+              Ekspor Laporan
+              <svg class="exp-chev" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>
+            </button>
+            <div class="export-menu" id="exportMenu" hidden>
+              <button type="button" id="expPdfItem">
+                <span class="em-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+                </span>
+                <span class="em-txt"><strong>PDF</strong><small>Laporan lengkap &mdash; siap cetak / arsip</small></span>
+              </button>
+              <button type="button" id="expCsvItem">
+                <span class="em-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2M8 17h5"/></svg>
+                </span>
+                <span class="em-txt"><strong>CSV</strong><small>Buka di Excel / spreadsheet</small></span>
+              </button>
+            </div>
+          </div>
+          <button id="bkClear" class="btn-link danger" type="button" hidden>Hapus semua pengajuan</button>
         </div>
         <div id="bkList"></div>
         <div id="bkEmpty" class="empty-state" hidden>
@@ -218,6 +383,7 @@
 
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/vendor/qrcode.min.js"></script>
+  <script src="assets/js/vendor/jsQR.min.js"></script>
   <script src="assets/js/core.js"></script>
   <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/auth.js"></script>

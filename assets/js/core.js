@@ -7,6 +7,21 @@ window.CFB = window.CFB || {};
 (function () {
   'use strict';
 
+  // ============ Waktu resmi sistem: WIB (UTC+7) ============
+  /* Seluruh tanggal/jam pada Gamaspace memakai Waktu Indonesia Barat,
+     TERLEPAS dari pengaturan jam/zona waktu perangkat pengguna.
+     - nowWIB()      : Date yang digeser ke WIB — getter lokalnya
+                       (getDate, getHours, …) langsung memberi nilai WIB.
+     - WIB_TZ        : dipakai pada toLocaleString(..., { timeZone }) agar
+                       tampilan selalu "… WIB" di semua perangkat. */
+  const WIB_TZ = 'Asia/Jakarta';
+  const WIB_OFFSET_MIN = 7 * 60;         // UTC+7, tanpa DST
+
+  function nowWIB() {
+    // Date(Date.now() + (offsetWIB - offsetPerangkat)) → getter lokal = WIB
+    return new Date(Date.now() + (WIB_OFFSET_MIN + new Date().getTimezoneOffset()) * 60000);
+  }
+
   // ============ Util ============
   const util = {
     esc(str) {
@@ -18,25 +33,35 @@ window.CFB = window.CFB || {};
     pad2(n) { return String(n).padStart(2, '0'); },
     hourLabel(h) { return util.pad2(h) + ':00'; },
     rangeLabel(startHour, endHour) { return util.hourLabel(startHour) + ' \u2013 ' + util.hourLabel(endHour); },
+    /* Waktu resmi sistem */
+    WIB_TZ: WIB_TZ,
+    nowWIB: nowWIB,
     todayStr() {
-      const d = new Date();
+      const d = nowWIB();
       return d.getFullYear() + '-' + util.pad2(d.getMonth() + 1) + '-' + util.pad2(d.getDate());
     },
-    nowHour() { return new Date().getHours(); },
+    nowHour() { return nowWIB().getHours(); },
     dateParts(ds) {
-      const d = new Date(ds + 'T00:00:00');
+      const d = new Date(ds + 'T00:00:00Z');   // tengah hari UTC — aman dari geser zona
       const loc = (window.CFB.i18n) ? CFB.i18n.locale() : 'id-ID';
+      const opt = { timeZone: 'UTC' };
       return {
-        day: d.toLocaleDateString(loc, { weekday: 'short' }),
-        date: d.getDate(),
-        month: d.toLocaleDateString(loc, { month: 'short' }),
-        full: d.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        day: d.toLocaleDateString(loc, Object.assign({ weekday: 'short' }, opt)),
+        date: d.getUTCDate(),
+        month: d.toLocaleDateString(loc, Object.assign({ month: 'short' }, opt)),
+        full: d.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
       };
     },
-    /* Format tanggal-waktu lokal (untuk riwayat & bukti) */
+    /* Format tanggal-jam SELALU dalam WIB (riwayat, bukti, admin) */
     fmtDateTime(iso) {
       const loc = (window.CFB.i18n) ? CFB.i18n.locale() : 'id-ID';
-      try { return new Date(iso).toLocaleString(loc); } catch (e) { return String(iso || ''); }
+      try {
+        return new Date(iso).toLocaleString(loc, {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: false,
+          timeZone: WIB_TZ
+        }) + ' WIB';
+      } catch (e) { return String(iso || ''); }
     },
     /* Paksa ulang animasi CSS pada elemen (untuk transisi antar halaman) */
     animateIn(el, cls) {
@@ -200,7 +225,8 @@ window.CFB = window.CFB || {};
   const RE = {
     // NIM UGM: tahun(2)/nomor urut(6)/kode program(2-3 huruf)/nomor(5) — contoh: 21/456789/PA/20123
     nim: /^\d{2}\/\d{6}\/[A-Z]{2,3}\/\d{5}$/,
-    emailUgm: /^[a-z0-9._%+-]+@mail\.ugm\.ac\.id$/i,
+    // Whitelist email UGM: mahasiswa (@mail.ugm.ac.id) & staf/dosen (@ugm.ac.id)
+    emailUgm: /^[a-z0-9._%+-]+@(mail\.)?ugm\.ac\.id$/i,
     phoneLocal: /^8\d{8,11}$/
   };
 

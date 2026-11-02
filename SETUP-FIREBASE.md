@@ -30,20 +30,23 @@ Setelah selesai, data fasilitas + pengajuan peminjaman dari semua pengguna akan 
 ```json
 {
   "rules": {
-    "facilities":   { ".read": true, ".write": true },
-    "availability": { ".read": true, ".write": true },
-    "bookings":     { ".read": true, ".write": true },
-    "users":        { ".read": true, ".write": true },
-    "admins":       { ".read": true, ".write": true }
+    "facilities":     { ".read": true, ".write": true },
+    "availability":   { ".read": true, ".write": true },
+    "bookings":       { ".read": true, ".write": true },
+    "users":          { ".read": true, ".write": true },
+    "admins":         { ".read": true, ".write": true },
+    "petugas":        { ".read": true, ".write": true },
+    "keys":           { ".read": true, ".write": true }
   }
 }
 ```
 
 3. Klik **Publish**
 
-> Node `users` (identitas peminjam — auto-isi formulir lintas perangkat) dan `admins`
-> (daftar email admin) wajib masuk rules. Bila belum, aplikasi **tetap berjalan** —
-> identitas & daftar admin otomatis memakai penyimpanan lokal peramban.
+> Node `users` (identitas peminjam — auto-isi formulir lintas perangkat), `admins`
+> (daftar email admin), `petugas` (daftar Petugas Lapangan — alur QR Scanner) dan
+> `keys` (kunci fasilitas — serah terima di Scanner) wajib masuk rules. Bila belum,
+> aplikasi **tetap berjalan** — fitur terkait otomatis memakai penyimpanan lokal peramban.
 >
 > Rules terbuka diperlukan karena aplikasi **tanpa login** (sesuai prototipe/tugas).
 > Untuk produksi, gunakan Firebase Authentication dan batasi akses per-node — lihat catatan keamanan di `README.md`.
@@ -86,7 +89,29 @@ Setelah 3 langkah di atas selesai:
 1. Buka `index.html` (atau lewat HTTP server `python3 -m http.server 8000`)
 2. Pastikan daftar fasilitas tampil dari database (bukan error di console)
 3. Coba ajukan peminjaman, lalu buka `admin.html` → tab Pengajuan → pengajuan Anda muncul dari semua perangkat
-4. Cek Realtime Database → tab **Data** → node `bookings/` akan menampilkan pengajuan baru dengan push key
+
+---
+
+## Menambah Admin Baru (langsung aktif)
+
+Hanya **pengelola utama** (`rootAdminEmail` di `assets/js/firebase-config.js`, bawaan:
+`dhamashidqiputra2007@mail.ugm.ac.id`) yang dapat menambahkan admin baru —
+**langsung aktif tanpa proses persetujuan**.
+
+1. **Tambahkan** — pengelola utama membuka `admin.html` → tab **Admin & Akun** →
+   *Daftar Admin* → **+ Tambah Admin** → masukkan email → **Tambah Admin**.
+   Email yang sudah terdaftar **ditolak otomatis** (tidak ada duplikat).
+2. **Masuk** — admin baru membuka `admin.html`; bila belum punya kata sandi,
+   gunakan tombol **Daftar** pada gate dengan email yang sama, lalu masuk.
+3. **Admin lain** — tetap dapat melihat *Daftar Admin*, namun menekan tombol
+   **Tambah Admin** menampilkan modal **Akses Ditolak** (hanya pengelola utama
+   yang boleh menambah).
+4. **Hapus akses** — pengelola utama dapat menghapus admin (tombol tempat sampah
+   pada baris admin) kapan saja; admin dari `adminEmails` dikelola lewat file
+   `firebase-config.js`.
+
+> Catatan: pengajuan peminjaman yang masuk dapat dilihat di Realtime Database →
+> tab **Data** → node `bookings/` (push key otomatis).
 
 ---
 

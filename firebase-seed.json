@@ -310,8 +310,8 @@
           },
           {
             "type": "door",
-            "x": 6.5,
-            "y": 7.55,
+            "x": 5,
+            "y": 8,
             "rot": 0
           }
         ]
@@ -794,5 +794,7 @@
         "note": "Perawatan sound system"
       }
     ]
-  }
+  },
+  "petugas": {},
+  "keys": {}
 }

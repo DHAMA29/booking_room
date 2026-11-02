@@ -26,6 +26,7 @@
     startHour: null,
     duration: null,
     lastBookingId: null,
+    resubmitFrom: null,   // id pengajuan ditolak yang sedang diajukan ulang
     q: '', fCategory: 'all', fStatus: 'all', fCapacity: 'all', fSort: 'name-asc'
   };
 
@@ -74,7 +75,10 @@
     return { cls: map[s] || 'st-ok', label: T('status.' + (s || 'Available')) };
   }
   function statusBadge(s) {
-    const key = { Pending: 'book.Pending', Approved: 'book.Approved', Rejected: 'book.Rejected' }[s];
+    const key = {
+      Pending: 'book.Pending', Approved: 'book.Approved', Rejected: 'book.Rejected',
+      'Checked-in': 'book.CheckedIn', 'Selesai': 'book.Completed', 'Cancelled': 'book.Cancelled'
+    }[s];
     return '<span class="status-badge status-' + String(s).toLowerCase() + '">' + esc(key ? T(key) : s) + '</span>';
   }
 
@@ -164,8 +168,7 @@
   // ============ Detail ============
   function navigateToDetail(id) {
     state.facilityId = id;
-    renderDetail();
-    location.hash = '#/facility/' + id;
+    goHash('#/facility/' + id, renderDetail);
   }
 
   /* Gerbang login kini muncul di halaman ruangan: saat tombol
@@ -252,8 +255,7 @@
   function goSchedule() {
     if (!CFB.data.getFacilityById(state.facilityId)) { goExplore(); return; }
     state.date = null; state.startHour = null; state.duration = null;
-    renderSchedule();
-    location.hash = '#/schedule';
+    goHash('#/schedule', renderSchedule);
   }
 
   function renderSchedule() {
@@ -455,8 +457,7 @@
       goSchedule();
       return;
     }
-    renderRequest();
-    location.hash = '#/request';
+    goHash('#/request', renderRequest);
   }
 
   function renderRequest() {
@@ -467,6 +468,8 @@
       '<p>' + esc(f.location) + ' \u00b7 ' + esc(T('detail.side.capacity')) + ' ' + f.capacity + ' ' + esc(T('unit.people')) + '</p>' +
       '<p>' + esc(p.full) + ' \u00b7 ' + CFB.util.rangeLabel(state.startHour, state.startHour + state.duration) +
       ' WIB \u00b7 ' + esc(T('sched.durUnit', { n: state.duration })) + '</p>';
+
+    renderResubmitBanner();
 
     const form = $('#bookingForm');
     form.reset();
@@ -479,7 +482,44 @@
     /* Bila login, isi nama & email otomatis (bila kolom masih kosong) */
     prefillFromAccount();
 
+    /* Alur "Ajukan Ulang": isi formulir dari pengajuan lama yang ditolak */
+    prefillFromResubmit();
+
     showPage('request');
+  }
+
+  /* Banner pengajuan ulang di atas formulir — menampilkan nomor & alasan
+     penolakan pengajuan lama agar pengguna tahu konteksnya. */
+  function renderResubmitBanner() {
+    const box = $('#resubmitBanner');
+    if (!box) return;
+    const old = state.resubmitFrom ? CFB.data.getBookingById(state.resubmitFrom) : null;
+    if (!old) { box.hidden = true; box.innerHTML = ''; return; }
+    const reason = old.rejectReason ? T('res.banner.reason', { reason: esc(old.rejectReason) }) : '';
+    box.innerHTML =
+      CFB.icons.warningSmall +
+      '<p>' + T('res.banner', { id: esc(old.id), reason: reason }) + '</p>';
+    box.hidden = false;
+  }
+
+  /* Prefill formulir dari pengajuan lama (hanya kolom yang masih kosong
+     setelah prefill akun — preferensi tetap milik pengguna). */
+  function prefillFromResubmit() {
+    const old = state.resubmitFrom ? CFB.data.getBookingById(state.resubmitFrom) : null;
+    if (!old) return;
+    const setIfEmpty = (sel, v) => {
+      const el = $(sel);
+      if (el && !el.value && v != null && v !== '') el.value = v;
+    };
+    setIfEmpty('#f-name', old.name);
+    setIfEmpty('#f-nim', old.nim);
+    setIfEmpty('#f-email', old.email);
+    setIfEmpty('#f-phone', old.phone ? CFB.format.phoneLocal(String(old.phone).replace(/\D/g, '')) : '');
+    setIfEmpty('#f-participants', old.participants);
+    setIfEmpty('#f-organization', old.organization);
+    setIfEmpty('#f-purpose', old.purpose);
+    setIfEmpty('#f-notes', old.notes);
+    updatePurposeCount();
   }
 
   /* Prefill formulir peminjaman dari identitas tersimpan (per email akun)
@@ -870,6 +910,13 @@
       goExplore();
       return;
     }
+    /* Kuota peminjaman aktif per akun (default 2): Pending + Approved +
+       Checked-in dihitung aktif. Mencegah satu akun menimbun ruangan. */
+    const maxActive = CFB.data.maxActiveBookings();
+    if (CFB.data.getActiveBookingCount() >= maxActive) {
+      CFB.notify.warning(T('toast.quota.title'), T('toast.quota.msg', { n: maxActive }));
+      return;
+    }
     if (!CFB.data.isRangeFree(f.id, state.date, state.startHour, state.duration)) {
       CFB.notify.error(T('toast.taken.title'), T('toast.taken.msg'));
       goSchedule();
@@ -922,6 +969,11 @@
         new Promise(r => setTimeout(r, 1200))
       ]);
       if (!saved) return; // toast error sudah ditampilkan data layer
+      /* Alur ajukan-ulang: tandai pengajuan lama sebagai digantikan */
+      if (state.resubmitFrom) {
+        await CFB.data.markResubmitted(state.resubmitFrom, saved.id);
+        state.resubmitFrom = null;
+      }
       state.lastBookingId = saved.id;
       updateBookingBadge();
       renderSummary(saved);
@@ -980,11 +1032,25 @@
     if (b.status === 'Approved') {
       return { cls: 'ok', icon: CFB.icons.success, text: T('bk.note.ok') };
     }
+    if (b.status === 'Checked-in') {
+      return { cls: 'ok', icon: CFB.icons.success, text: T('bk.note.checkedin') };
+    }
+    if (b.status === 'Selesai') {
+      return { cls: 'ok', icon: CFB.icons.success, text: T('bk.note.done') };
+    }
     if (b.status === 'Rejected') {
       const reason = b.rejectReason
         ? T('bk.note.reason', { reason: esc(b.rejectReason) })
         : '';
       return { cls: 'no', icon: CFB.icons.error, text: T('bk.note.no', { reason: reason }) };
+    }
+    if (b.status === 'Cancelled') {
+      const reasonKey = {
+        user: 'bk.note.cancel.user',
+        expired: 'bk.note.cancel.expired',
+        'no-show': 'bk.note.cancel.noshow'
+      }[b.cancelReason] || 'bk.note.cancel.user';
+      return { cls: 'no', icon: CFB.icons.error, text: T('bk.note.cancelled', { reason: T(reasonKey) }) };
     }
     return {
       cls: 'wait',
@@ -1024,6 +1090,11 @@
         /* Panel detail singkat yang terbuka saat item ditekan + unduh bukti */
         '<div class="bi-detail-wrap"><div class="bi-detail"><div class="bi-detail-inner">' +
         '  <div class="bi-note bi-note-' + note.cls + '">' + note.icon + '<p>' + note.text + '</p></div>' +
+        ((b.status === 'Approved' || b.status === 'Checked-in') && b.checkinCode
+          ? '<div class="checkin-box"><span class="cb-label">' + esc(T('bk.checkin.label')) + '</span>' +
+            '<span class="cb-code">' + esc(b.checkinCode) + '</span>' +
+            '<span class="cb-hint">' + esc(T('bk.checkin.hint')) + '</span></div>'
+          : '') +
         '  <div class="bi-grid">' +
         '    <div><p class="bi-label">' + esc(T('bk.g.ref')) + '</p><p class="bi-value mono">' + esc(b.id) + '</p></div>' +
         '    <div><p class="bi-label">' + esc(T('bk.g.date')) + '</p><p class="bi-value">' + esc(b.dateLabel || b.date) + '</p></div>' +
@@ -1036,6 +1107,15 @@
         '    <button type="button" class="btn-proof" data-proof="' + esc(b.id) + '">' +
         '      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>' +
         esc(T('bk.proof')) + '</button>' +
+        (b.status === 'Checked-in'
+          ? '<button type="button" class="btn-proof success" data-checkout="' + esc(b.id) + '">' + CFB.icons.success + esc(T('bk.action.checkout')) + '</button>'
+          : '') +
+        ((b.status === 'Pending' || b.status === 'Approved')
+          ? '<button type="button" class="btn-proof danger" data-cancel="' + esc(b.id) + '">' + CFB.icons.close + esc(T('bk.action.cancel')) + '</button>'
+          : '') +
+        (b.status === 'Rejected'
+          ? '<button type="button" class="btn-proof" data-resubmit="' + esc(b.id) + '">' + CFB.icons.check + esc(T('bk.action.resubmit')) + '</button>'
+          : '') +
         '  </div>' +
         '</div></div></div>';
 
@@ -1044,7 +1124,10 @@
         div.setAttribute('aria-expanded', String(open));
       };
       div.addEventListener('click', (e) => {
-        if (e.target.closest('[data-proof]')) return; // tombol bukti tidak membuka/menutup panel
+        if (e.target.closest('[data-proof]')) return;   // tombol bukti tidak membuka/menutup panel
+        if (e.target.closest('[data-checkout]')) return; // tombol kembalikan kunci punya handler sendiri
+        if (e.target.closest('[data-cancel]')) return;  // tombol batal punya handler sendiri
+        if (e.target.closest('[data-resubmit]')) return; // tombol ajukan ulang
         toggle();
       });
       div.addEventListener('keydown', (e) => {
@@ -1058,8 +1141,76 @@
         if (b) CFB.proof.show(b);
       });
     });
+    /* Batalkan pengajuan sendiri (Pending / Approved) — slot langsung bebas */
+    $$('[data-cancel]', wrap).forEach(btn => {
+      btn.addEventListener('click', () => cancelMyBooking(btn.dataset.cancel));
+    });
+    /* Kembalikan kunci / akhiri pemakaian (Checked-in) — checkout peminjam */
+    $$('[data-checkout]', wrap).forEach(btn => {
+      btn.addEventListener('click', () => checkoutMyBooking(btn.dataset.checkout));
+    });
+    /* Ajukan ulang setelah ditolak — buka alur booking dengan data terisi */
+    $$('[data-resubmit]', wrap).forEach(btn => {
+      btn.addEventListener('click', () => startResubmit(btn.dataset.resubmit));
+    });
     CFB.util.stagger(wrap);
     showPage('bookings');
+  }
+
+  /* ===== Batalkan pengajuan milik sendiri ===== */
+  async function cancelMyBooking(id) {
+    const b = CFB.data.getBookingById(id);
+    if (!b) return;
+    const ok = await CFB.confirm({
+      title: T('toast.cancelConfirm.title'),
+      html: T('toast.cancelConfirm.msg', { id: esc(id), name: esc(b.facilityName) }),
+      confirmText: T('toast.cancelConfirm.yes'),
+      danger: true
+    });
+    if (!ok) return;
+    const res = await CFB.data.cancelBooking(id, 'user');
+    if (!res.ok) {
+      CFB.notify.error(T('toast.invalid.title'), T('toast.invalid.msg', { n: 1 }));
+      return;
+    }
+    CFB.notify.info(T('toast.cancel.title'), T('toast.cancel.msg', { id: id }));
+    updateBookingBadge();
+    renderBookings();
+  }
+
+  /* ===== Kembalikan kunci / akhiri pemakaian (checkout peminjam) =====
+     Alur QR petugas: check-in terjadi saat petugas memindai QR di lokasi;
+     penandaan SELESAI ada di tangan peminjam. Bila terlewat, sistem
+     menutup otomatis saat waktu sewa habis (senyap). */
+  async function checkoutMyBooking(id) {
+    const b = CFB.data.getBookingById(id);
+    if (!b) return;
+    const ok = await CFB.confirm({
+      title: T('toast.checkoutConfirm.title'),
+      html: T('toast.checkoutConfirm.msg', { name: esc(b.facilityName) }),
+      confirmText: T('toast.checkoutConfirm.yes')
+    });
+    if (!ok) return;
+    const res = await CFB.data.checkoutBooking(id);
+    if (!res.ok) {
+      CFB.notify.error(T('toast.invalid.title'), T('toast.invalid.msg', { n: 1 }));
+      return;
+    }
+    CFB.notify.success(T('toast.checkout.title'), T('toast.checkout.msg', { id: id }));
+    updateBookingBadge();
+    renderBookings();
+  }
+
+  /* ===== Ajukan ulang setelah ditolak =====
+     Simpan konteks resubmit → arahkan ke detail fasilitas → pengguna
+     memilih jadwal baru → formulir terisi otomatis dari pengajuan lama. */
+  function startResubmit(id) {
+    const b = CFB.data.getBookingById(id);
+    if (!b) return;
+    state.resubmitFrom = id;
+    state.facilityId = b.facilityId;
+    state.date = null; state.startHour = null; state.duration = null;
+    goHash('#/facility/' + b.facilityId, renderDetail);
   }
 
   // ============ Autentikasi (Firebase Auth) ============
@@ -1302,12 +1453,19 @@
     handleHashChange();
   }
 
+  /* Navigasi cukup mengubah hash — render dilakukan SATU kali oleh
+     handleHashChange. (Revisi: dulu render ganda — klik fasilitas →
+     renderDetail langsung + hashchange → renderDetail lagi — membuat
+     transisi ke halaman detail terasa kaku/tersendat.) */
+  function goHash(target, directFn) {
+    if (location.hash === target) { if (directFn) directFn(); }
+    else location.hash = target;
+  }
+
   // ============ Router ============
   function goExplore() {
     state.facilityId = null; state.date = null; state.startHour = null; state.duration = null;
-    location.hash = '#/';
-    applyFilters();
-    showPage('explore');
+    goHash('#/', () => { applyFilters(); showPage('explore'); });
   }
 
   function handleHashChange() {
@@ -1341,8 +1499,12 @@
   function refreshThenRender(renderFn) {
     if (CFB.data.getMode() === 'firebase') {
       CFB.data.refreshBookings().catch(() => {}).then(() => {
-        updateBookingBadge();
-        renderFn();
+        /* Sweep lifecycle sisi pengguna: pengajuan Checked-in yang waktunya
+           habis → Selesai otomatis (senyap), dsb. */
+        CFB.data.sweepLifecycle().catch(() => {}).then(() => {
+          updateBookingBadge();
+          renderFn();
+        });
       });
     } else {
       renderFn();
@@ -1369,10 +1531,10 @@
 
     $$('[data-action="back-explore"]').forEach(b => b.addEventListener('click', goExplore));
     $$('[data-action="back-detail"]').forEach(b => b.addEventListener('click', () => {
-      if (state.facilityId) { renderDetail(); location.hash = '#/facility/' + state.facilityId; }
+      if (state.facilityId) goHash('#/facility/' + state.facilityId, renderDetail);
       else goExplore();
     }));
-    $$('[data-action="back-schedule"]').forEach(b => b.addEventListener('click', () => { renderSchedule(); location.hash = '#/schedule'; }));
+    $$('[data-action="back-schedule"]').forEach(b => b.addEventListener('click', () => { goHash('#/schedule', renderSchedule); }));
 
     $('#continueToRequest').addEventListener('click', goRequest);
     $('#bookingForm').addEventListener('submit', handleSubmit);
@@ -1412,6 +1574,16 @@
     document.addEventListener('cfb:lang', onLangChanged);
   }
 
+  /* Footer hanya dirender setelah data siap — mencegah animasi aneh
+     (footer melompat saat daftar fasilitas muncul) saat akses pertama. */
+  function revealFooter() {
+    const ft = document.querySelector('.site-footer');
+    if (ft && ft.hidden) {
+      ft.hidden = false;
+      ft.classList.add('footer-in');
+    }
+  }
+
   // ============ Init ============
   async function init() {
     bindEvents();
@@ -1419,6 +1591,9 @@
     if (CFB.auth && CFB.auth.init) CFB.auth.init(); // async — status datang via event
     try {
       await CFB.data.load();
+      /* Sweep lifecycle: Pending >48 jam & Approved tanpa check-in yang
+         slotnya sudah lewat → dibatalkan otomatis (slot kembali bebas). */
+      await CFB.data.sweepLifecycle();
       updateBookingBadge();
       handleHashChange();
     } catch (err) {
@@ -1429,6 +1604,7 @@
       $('#emptyState').querySelector('.empty-hint').innerHTML = T('empty.load.hint');
       showPage('explore');
     }
+    revealFooter();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

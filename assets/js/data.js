@@ -15,11 +15,64 @@ window.CFB = window.CFB || {};
   'use strict';
 
   const KEY_BOOKINGS = 'cfb_bookings';
+  const KEY_KEYS = 'cfb_keys';
   const KEY_OVERRIDES = 'cfb_facility_overrides';
   const KEY_CLIENT = 'cfb_client_id';
 
   const DEFAULT_POLICY = { bookingDaysAhead: 14, minDurationHours: 1, maxDurationHours: 2 };
   const FB_TIMEOUT_MS = 7000;
+
+  /* ===== Siklus hidup pengajuan (revisi lifecycle) =====
+     Pending    → menunggu persetujuan (maks 48 jam → auto-batal 'expired')
+     Approved   → disetujui; peminjam menunjukkan QR/kode bukti kepada
+                  petugas saat pengambilan kunci → pemindaian mengubah
+                  status menjadi Checked-in (tanpa check-in sampai slot
+                  berakhir → auto-batal 'no-show')
+     Checked-in → kunci sedang dipinjam; saat waktu habis → auto-Selesai
+                  (otomatis senyap), atau peminjam menekan Checkout
+     Selesai    → pemakaian berakhir (checkout peminjam / otomatis)
+     Rejected   → ditolak (bisa diajukan ulang)
+     Cancelled  → dibatalkan (cancelReason: user | expired | no-show)
+     Hanya status AKTIF yang memblokir slot jadwal. */
+  const ACTIVE_STATUSES = ['Pending', 'Approved', 'Checked-in'];
+  const PENDING_TTL_HOURS = 48;          // batas usia pengajuan Pending
+  const CHECKIN_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // tanpa 0/O/1/I
+
+  function normStatus(s) { return String(s == null ? 'Pending' : s).trim(); }
+  function isActiveStatus(s) { return ACTIVE_STATUSES.indexOf(normStatus(s)) >= 0; }
+
+  function maxActiveBookings() {
+    const cfg = window.CFB_FIREBASE || {};
+    const n = parseInt(cfg.maxActiveBookings, 10);
+    return (isNaN(n) || n < 1) ? 2 : n;
+  }
+
+  function generateCheckinCode() {
+    let out = '';
+    for (let i = 0; i < 6; i++) {
+      out += CHECKIN_CODE_CHARS.charAt(Math.floor(Math.random() * CHECKIN_CODE_CHARS.length));
+    }
+    return out;
+  }
+
+  /* Apakah slot peminjaman (tanggal + jam akhir) sudah terlewati.
+     Seluruh perbandingan memakai WIB (waktu resmi sistem — lihat core.js),
+     sehingga jam/zona perangkat yang tidak akurat tidak mengubah keputusan.
+     Pengajuan yang tanggalnya MASIH di depan TIDAK pernah dianggap
+     berakhir — pengaman agar pengajuan masa depan tidak dibatalkan
+     (kasus: baru di-ACC lalu langsung tampil "dibatalkan — no-show"). */
+  function slotEnded(b) {
+    if (!b || !b.date || b.endHour == null) return false;
+    const today = todayISO();
+    if (String(b.date) > today) return false;          // tanggal belum tiba
+    if (String(b.date) < today) return true;           // tanggal sudah lewat
+    return CFB.util.nowHour() >= Number(b.endHour);    // hari ini → jam WIB ≥ jam akhir
+  }
+
+  /* Tanggal hari ini — SELALU dalam WIB (bukan jam perangkat) */
+  function todayISO() {
+    return CFB.util.todayStr();
+  }
 
   // ============ State ============
   let SEED = [];                       // fasilitas dari data/facilities.json
@@ -231,6 +284,7 @@ window.CFB = window.CFB || {};
     const ok = await tryFirebase();
     if (ok) applySeedLayoutFallback();
     else applyLocalMode();
+    await loadKeys();
   }
 
   /* Ambil ulang pengajuan dari Firebase (mode firebase saja) */
@@ -374,17 +428,104 @@ window.CFB = window.CFB || {};
     }
   }
 
+  // ============ Kunci fasilitas (node /keys) ============
+  /* Kunci dikelola admin per fasilitas. Status "Dipinjam" TIDAK disimpan —
+     diturunkan dari pengajuan Checked-in yang mencatat keyId, sehingga
+     selalu konsisten dengan siklus hidup pengajuan. */
+  let KEYS = [];
+
+  function keyMapToList(map) {
+    if (!map || typeof map !== 'object') return [];
+    return Object.keys(map)
+      .map(k => Object.assign({ _key: k }, map[k]))
+      .sort((a, b) => String(a.label || '').localeCompare(String(b.label || '')));
+  }
+
+  async function loadKeys() {
+    if (MODE === 'firebase') {
+      try { KEYS = keyMapToList(await fbGet('keys')); }
+      catch (e) { KEYS = []; }
+      return;
+    }
+    KEYS = CFB.store.get(KEY_KEYS, []);
+    if (!Array.isArray(KEYS)) KEYS = [];
+  }
+
+  async function refreshKeys() { await loadKeys(); }
+
+  function getKeys() { return KEYS.slice(); }
+  function getKeysByFacility(facilityId) { return KEYS.filter(k => k.facilityId === facilityId); }
+
+  /* id kunci → status peminjaman (Checked-in) saat ini */
+  function keyBorrowedMap() {
+    const map = {};
+    BOOKINGS.forEach(b => {
+      if (normStatus(b.status) === 'Checked-in' && b.keyId) map[b.keyId] = b;
+    });
+    return map;
+  }
+
+  /* Simpan (tambah/ubah) satu kunci. Mengembalikan { ok, error? }. */
+  async function saveKey(obj) {
+    if (!obj || !obj.facilityId) return { ok: false, error: 'Data kunci tidak valid' };
+    if (!obj.label || !String(obj.label).trim()) return { ok: false, error: 'Label kunci wajib diisi' };
+    obj.label = String(obj.label).trim();
+    obj.note = String(obj.note || '').trim();
+    if (MODE === 'firebase') {
+      try {
+        if (obj._key) {
+          await fbPut('keys/' + encodeURIComponent(obj._key), stripInternal(obj));
+        } else {
+          const k = await fbPush('keys', stripInternal(obj));
+          if (!k) return { ok: false, error: 'Gagal membuat kunci baru' };
+          obj._key = k;
+        }
+        const i = KEYS.findIndex(x => x._key === obj._key);
+        if (i >= 0) KEYS[i] = Object.assign({}, obj);
+        else KEYS.push(Object.assign({}, obj));
+        return { ok: true };
+      } catch (e) { return { ok: false, error: fbErrMsg(e) }; }
+    }
+    if (!obj.id) obj.id = 'K' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 4).toUpperCase();
+    let list = CFB.store.get(KEY_KEYS, []);
+    if (!Array.isArray(list)) list = [];
+    const i = list.findIndex(x => x.id === obj.id);
+    if (i >= 0) list[i] = obj; else list.push(obj);
+    if (!CFB.store.set(KEY_KEYS, list)) return { ok: false, error: 'Penyimpanan lokal penuh' };
+    KEYS = list;
+    return { ok: true };
+  }
+
+  /* Hapus satu kunci. */
+  async function deleteKey(ref) {
+    if (!ref) return { ok: false, error: 'Data kunci tidak valid' };
+    if (MODE === 'firebase') {
+      const target = KEYS.find(x => x._key === ref || x.id === ref);
+      if (!target) return { ok: false, error: 'Kunci tidak ditemukan' };
+      try {
+        await fbDelete('keys/' + encodeURIComponent(target._key));
+        KEYS = KEYS.filter(x => x._key !== target._key);
+        return { ok: true };
+      } catch (e) { return { ok: false, error: fbErrMsg(e) }; }
+    }
+    const list = CFB.store.get(KEY_KEYS, []);
+    const out = (Array.isArray(list) ? list : []).filter(x => x.id !== ref);
+    CFB.store.set(KEY_KEYS, out);
+    KEYS = out;
+    return { ok: true };
+  }
+
   // ============ Policy & tanggal ============
   function policy() { return AVAIL.policy; }
 
   function toISO(d) {
     return d.getFullYear() + '-' + CFB.util.pad2(d.getMonth() + 1) + '-' + CFB.util.pad2(d.getDate());
   }
-  /* Daftar tanggal yang bisa dipinjam: hari ini .. N hari ke depan */
+  /* Daftar tanggal yang bisa dipinjam: hari ini (WIB) .. N hari ke depan */
   function bookableDates() {
     const n = Math.max(1, AVAIL.policy.bookingDaysAhead | 0);
     const out = [];
-    const d = new Date();
+    const d = CFB.util.nowWIB();          // mulai dari hari ini versi WIB
     for (let i = 0; i < n; i++) { out.push(toISO(d)); d.setDate(d.getDate() + 1); }
     return out;
   }
@@ -419,13 +560,15 @@ window.CFB = window.CFB || {};
     return set;
   }
 
-  /* Apakah suatu jam terisi: seed Booked ATAU ada pengajuan Pending/Approved */
+  /* Apakah suatu jam terisi: seed Booked ATAU ada pengajuan status AKTIF
+     (Pending / Approved / Checked-in). Rejected, Selesai, dan Cancelled
+     tidak memblokir slot — slot otomatis kembali tersedia. */
   function isHourTaken(facilityId, date, hour) {
     if (dayClosure(facilityId, date)) return true;
     if (seedTakenHours(facilityId, date).has(hour)) return true;
     return BOOKINGS.some(b =>
       b.facilityId === facilityId && b.date === date &&
-      String(b.status).toLowerCase() !== 'rejected' &&
+      isActiveStatus(b.status) &&
       b.startHour <= hour && hour < b.startHour + (b.durationHours || 2)
     );
   }
@@ -547,7 +690,8 @@ window.CFB = window.CFB || {};
     return rec;
   }
 
-  /* Ubah status (Approved/Rejected). Mengembalikan objek, atau null bila gagal. */
+  /* Ubah status (Approved/Rejected/Checked-in/Selesai/Cancelled).
+     Mengembalikan objek, atau null bila gagal. */
   async function updateBookingStatus(id, status, extra) {
     const b = BOOKINGS.find(x => x.id === id);
     if (!b) return null;
@@ -584,10 +728,178 @@ window.CFB = window.CFB || {};
     return true;
   }
 
+  /* ===== Pemindaian bukti (petugas) =====
+     Payload QR kartu bukti:
+       GMS-PROOF|<id>|<facilityId>|<date>|<slot>|<nim>|<kode>
+     Petugas memindai QR lewat kamera ATAU mengetik kode 6 karakter
+     (fallback bila kamera tidak tersedia). Fungsi ini memvalidasi:
+     pengajuan ada, berstatus Approved, dan berjadwal HARI INI. */
+  function parseProofPayload(text) {
+    const raw = String(text || '').trim();
+    if (!raw || raw.indexOf('GMS-PROOF|') !== 0) return null;
+    const parts = raw.split('|');
+    return { id: parts[1] || '', checkinCode: String(parts[6] || '').toUpperCase() };
+  }
+
+  /* ref: payload QR penuh ATAU kode 6 karakter ATAU nomor referensi.
+     Mengembalikan { ok, booking? } atau { ok:false, error, booking? } dengan
+     error: 'empty' | 'not-found' | 'already' | 'status' | 'date'. */
+  function validateScanTarget(ref) {
+    const raw = String(ref || '').trim();
+    if (!raw) return { ok: false, error: 'empty' };
+    let b = null, code = '';
+    const p = parseProofPayload(raw);
+    if (p && p.id) {
+      b = getBookingById(p.id);
+      code = p.checkinCode;
+      if (!b) return { ok: false, error: 'not-found' };
+    } else {
+      const up = raw.toUpperCase().replace(/\s+/g, '');
+      b = BOOKINGS.find(x => String(x.checkinCode || '').toUpperCase() === up) ||
+          BOOKINGS.find(x => String(x.id || '').toUpperCase() === up);
+      if (!b) return { ok: false, error: 'not-found' };
+    }
+    if (code && String(b.checkinCode || '').toUpperCase() !== String(code).toUpperCase()) {
+      return { ok: false, error: 'not-found' };
+    }
+    const s = normStatus(b.status);
+    if (s === 'Checked-in') return { ok: false, error: 'already', booking: b };
+    if (s !== 'Approved') return { ok: false, error: 'status', booking: b };
+    if (b.date !== todayISO()) return { ok: false, error: 'date', booking: b };
+    return { ok: true, booking: b };
+  }
+
+  /* Check-in via pemindaian petugas — kunci tercatat pada pengajuan.
+     key: { ref, label } (kunci fasilitas terpilih) ATAU string label,
+     null/undefined bila tanpa pencatatan kunci. byEmail = email petugas. */
+  async function checkinByScan(id, key, byEmail) {
+    const b = BOOKINGS.find(x => x.id === id);
+    if (!b) return { ok: false, error: 'not-found' };
+    if (normStatus(b.status) !== 'Approved') return { ok: false, error: 'status' };
+    const extra = {
+      checkedInAt: new Date().toISOString(),
+      checkedInBy: byEmail || ''
+    };
+    if (key && typeof key === 'object') {
+      extra.keyId = String(key.ref || '');
+      extra.keyLabel = String(key.label || '');
+    } else if (key) {
+      extra.keyId = String(key);
+    }
+    const updated = await updateBookingStatus(id, 'Checked-in', extra);
+    return updated ? { ok: true, booking: updated } : { ok: false, error: 'save' };
+  }
+
+  /* Checkout oleh peminjam — kembalikan kunci / akhiri pemakaian.
+     Hanya pengajuan milik sendiri berstatus Checked-in. */
+  async function checkoutBooking(id) {
+    const b = BOOKINGS.find(x => x.id === id);
+    if (!b) return { ok: false, error: 'not-found' };
+    const cid = getClientId();
+    const u = (window.CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
+    const mine = (u && u.uid) ? b.uid === u.uid : (!b.uid && b.clientId === cid);
+    if (!mine) return { ok: false, error: 'forbidden' };
+    if (normStatus(b.status) !== 'Checked-in') return { ok: false, error: 'state' };
+    const updated = await updateBookingStatus(id, 'Selesai', {
+      completedAt: new Date().toISOString(),
+      checkoutBy: 'user'
+    });
+    return updated ? { ok: true, booking: updated } : { ok: false, error: 'save' };
+  }
+
+  /* ===== Lifecycle: sweep otomatis =====
+     - Pending lebih tua dari 48 jam       → Cancelled (expired)
+     - Approved yang slotnya sudah berakhir tanpa check-in → Cancelled (no-show)
+     - Checked-in yang waktunya sudah habis → Selesai otomatis (senyap;
+       autoClosed true — tanpa badge "terlambat", sesuai keputusan desain)
+     Perubahan disimpan (Firebase PATCH / LocalStorage) lalu status lokal
+     diperbarui. Mengembalikan jumlah pengajuan yang DIBATALKAN —
+     auto-Selesai sengaja tidak dihitung agar tidak memunculkan toast. */
+  async function sweepLifecycle() {
+    const now = Date.now();
+    const ttlMs = PENDING_TTL_HOURS * 3600 * 1000;
+    const targets = [];
+    let autoDone = 0;
+    BOOKINGS.forEach(b => {
+      const s = normStatus(b.status);
+      if (s === 'Pending') {
+        const t = Date.parse(b.createdAt || '');
+        if (!isNaN(t) && now - t > ttlMs) {
+          targets.push({ b: b, patch: { status: 'Cancelled', cancelReason: 'expired', decidedAt: new Date().toISOString() } });
+        }
+      } else if (s === 'Approved' && slotEnded(b)) {
+        targets.push({ b: b, patch: { status: 'Cancelled', cancelReason: 'no-show', decidedAt: new Date().toISOString() } });
+      } else if (s === 'Checked-in' && slotEnded(b)) {
+        targets.push({ b: b, patch: { status: 'Selesai', completedAt: new Date().toISOString(), autoClosed: true, decidedAt: new Date().toISOString() }, silent: true });
+        autoDone++;
+      }
+    });
+    if (!targets.length) return 0;
+    for (const t of targets) {
+      const b = t.b, patch = t.patch;
+      if (MODE === 'firebase' && b._key) {
+        try { await fbPatch('bookings/' + b._key, patch); } catch (e) { continue; } // gagal → coba lagi nanti
+      }
+      Object.assign(b, patch);
+    }
+    if (MODE === 'local') {
+      const list = migrateBookings();
+      if (CFB.store.set(KEY_BOOKINGS, list)) BOOKINGS = list;
+    }
+    return targets.length - autoDone;
+  }
+
+  /* Jumlah pengajuan AKTIF milik pengguna saat ini (uid bila login,
+     clientId bila tamu) — dipakai pembatasan kuota peminjaman aktif. */
+  function getActiveBookingCount() {
+    const cid = getClientId();
+    const u = (window.CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
+    return BOOKINGS.filter(b => {
+      const mine = (u && u.uid) ? (b.uid === u.uid || (!b.uid && b.clientId && b.clientId === cid))
+                                : (!b.uid && b.clientId === cid);
+      return mine && isActiveStatus(b.status);
+    }).length;
+  }
+
+  /* Pembatalan oleh pengguna — HANYA pengajuan miliknya sendiri yang
+     masih Pending atau Approved. Slot otomatis bebas karena Cancelled
+     tidak lagi dihitung status aktif. */
+  async function cancelBooking(id, reason) {
+    const b = BOOKINGS.find(x => x.id === id);
+    if (!b) return { ok: false, error: 'not-found' };
+    const cid = getClientId();
+    const u = (window.CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
+    const mine = (u && u.uid) ? b.uid === u.uid : (!b.uid && b.clientId === cid);
+    if (!mine) return { ok: false, error: 'forbidden' };
+    const s = normStatus(b.status);
+    if (s !== 'Pending' && s !== 'Approved') return { ok: false, error: 'state' };
+    const updated = await updateBookingStatus(id, 'Cancelled', {
+      cancelReason: reason || 'user',
+      cancelledAt: new Date().toISOString()
+    });
+    return updated ? { ok: true, booking: updated } : { ok: false, error: 'save' };
+  }
+
+  /* Tandai pengajuan lama sebagai digantikan pengajuan baru (alur
+     "Ajukan Ulang" setelah ditolak) — jejak tetap tersimpan. */
+  async function markResubmitted(oldId, newId) {
+    const b = BOOKINGS.find(x => x.id === oldId);
+    if (!b) return false;
+    const updated = await updateBookingStatus(oldId, normStatus(b.status), { resubmittedAs: newId });
+    return !!updated;
+  }
+
+  /* Nomor referensi: GMS-YYYYMMDD-XXXX (tanggal WIB, 4 karakter acak
+     dengan panjang SELALU sama, tanpa 0/O/1/I agar tidak mudah tertukar
+     saat dibaca atau diketik ulang oleh peminjam maupun petugas). */
+  const BOOKING_ID_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   function generateBookingId() {
-    const d = new Date();
+    const d = CFB.util.nowWIB();
     const ymd = '' + d.getFullYear() + CFB.util.pad2(d.getMonth() + 1) + CFB.util.pad2(d.getDate());
-    const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+    let rand = '';
+    for (let i = 0; i < 4; i++) {
+      rand += BOOKING_ID_CHARS.charAt(Math.floor(Math.random() * BOOKING_ID_CHARS.length));
+    }
     return 'GMS-' + ymd + '-' + rand;
   }
 
@@ -623,7 +935,11 @@ window.CFB = window.CFB || {};
     suggestAlternatives,
     getBookings, getMyBookings, getBookingById,
     addBooking, updateBookingStatus, clearBookings, refreshBookings, refreshFacilities,
+    cancelBooking, sweepLifecycle, getActiveBookingCount, maxActiveBookings,
+    generateCheckinCode, markResubmitted,
     generateBookingId, getClientId,
+    getKeys, getKeysByFacility, saveKey, deleteKey, keyBorrowedMap, loadKeys, refreshKeys,
+    validateScanTarget, parseProofPayload, checkinByScan, checkoutBooking, todayISO, slotEnded,
     getMode, fbStatus, seedFirebase,
     fbNodeGet, fbNodePut
   };

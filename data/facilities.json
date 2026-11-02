@@ -269,7 +269,10 @@
     "layout": {
       "w": 13,
       "h": 8,
-      "seats": 120,
+      "seats": 64,
+      "seatMode": "rounds",
+      "roundTables": 8,
+      "roundChairs": 8,
       "items": [
         {
           "type": "stage",
@@ -309,8 +312,8 @@
         },
         {
           "type": "door",
-          "x": 6.5,
-          "y": 7.55,
+          "x": 5,
+          "y": 8,
           "rot": 0
         }
       ]
@@ -391,6 +394,7 @@
       "w": 9,
       "h": 6,
       "seats": 16,
+      "seatMode": "utable",
       "items": [
         {
           "type": "sound",
@@ -575,7 +579,8 @@
     "layout": {
       "w": 11,
       "h": 8,
-      "seats": 60,
+      "seats": 36,
+      "seatMode": "circle",
       "items": [
         {
           "type": "whiteboard",

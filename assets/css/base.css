@@ -74,7 +74,7 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 @keyframes tcProgress { from { width: 100%; } to { width: 0; } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: none; } }
 
-.page-enter { animation: fadeUp .32s var(--ease) both; }
+.page-enter { animation: fadeUp .42s var(--ease) both; }
 .pop-enter { animation: popIn .3s var(--ease-bounce) both; }
 .shake { animation: shake .4s ease; }
 .st-in { opacity: 0; animation: fadeUp .4s var(--ease) forwards; animation-delay: calc(var(--i, 0) * 28ms); }
@@ -199,12 +199,64 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .status-pending { color: var(--warning); background: var(--warning-soft); }
 .status-approved { color: var(--success); background: var(--success-soft); }
 .status-rejected { color: var(--danger); background: var(--danger-soft); }
+.status-checked-in { color: #1D4ED8; background: #EFF4FF; }
+.status-selesai { color: #0F766E; background: #F0FDFA; }
+.status-cancelled { color: #475569; background: #F1F5F9; }
 
-/* ===== Footer ===== */
-.site-footer { border-top: 1px solid var(--line); background: var(--bg); padding: 32px 0; }
-.footer-inner { display: flex; flex-direction: column; gap: 6px; text-align: center; font-size: 13px; color: var(--ink-3); }
-.footer-inner a { color: var(--ink-2); font-weight: 500; }
-.footer-inner .muted { font-size: 12px; }
+/* ===== Footer — foto Balairung full-bleed, wordmark Gamaspace di tengah =====
+   Overlay diturunkan sedikit agar foto lebih terlihat; seluruh susunan
+   (brand, tagline, tautan, kredit) rata tengah. Footer app (fasilitas.html)
+   baru dirender setelah data siap — lihat .footer-in di bawah. */
+.site-footer {
+  position: relative;
+  padding: 68px 0 46px;
+  background:
+    linear-gradient(180deg, rgba(10, 18, 44, .52) 0%, rgba(8, 14, 36, .66) 100%),
+    url('../images/balairung.jpg') center 46% / cover no-repeat;
+  color: #fff;
+}
+.footer-inner {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; text-align: center;
+}
+.footer-brand {
+  margin: 0 0 4px;
+  font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
+  color: #fff;
+}
+.footer-tagline {
+  margin: 0; font-size: 13.5px; font-weight: 500; letter-spacing: -.01em;
+  color: rgba(255, 255, 255, .88);
+}
+.footer-links { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
+.footer-links a {
+  color: rgba(255, 255, 255, .82); font-size: 13px; font-weight: 500;
+  text-decoration: none; transition: color .15s var(--ease);
+}
+.footer-links a:hover { color: #fff; text-decoration: underline; }
+.footer-rule { width: min(420px, 72%); height: 1px; background: rgba(255, 255, 255, .2); margin: 20px auto 18px; }
+.footer-bottom {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; gap: 8px 22px; flex-wrap: wrap;
+}
+.footer-copy { margin: 0; font-size: 12.5px; color: rgba(255, 255, 255, .72); }
+.footer-credit {
+  margin: 0; display: inline-flex; align-items: center; gap: 9px;
+  font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, .9);
+}
+.footer-ugm { height: 28px; width: auto; opacity: .95; flex-shrink: 0; }
+
+/* Footer muncul setelah data termuat — bukan sebelumnya
+   (mencegah animasi aneh / layout melompat saat akses pertama). */
+@keyframes footerIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.footer-in { animation: footerIn .55s var(--ease) both; }
+
+@media (max-width: 640px) {
+  .footer-bottom { flex-direction: column; gap: 10px; }
+  .footer-brand { font-size: 26px; }
+  .site-footer { padding: 54px 0 38px; }
+}
 
 /* ============================================
    NOTIFIKASI CARD (toast)
@@ -303,13 +355,15 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 
 /* ============================================
    VIEW TRANSITIONS (perpindahan antar halaman SPA)
-   Cross-fade + geser halus; dihormati prefers-reduced-motion.
+   Cross-fade + dorongan halus naik (bukan lagi cross-fade datar yang
+   terasa kaku); dihormati prefers-reduced-motion.
    ============================================ */
-@keyframes vtOut { to { opacity: 0; transform: translateY(-8px); } }
-@keyframes vtIn { from { opacity: 0; transform: translateY(10px); } }
+@keyframes vtOut { to { opacity: 0; transform: translateY(-10px) scale(.996); } }
+@keyframes vtIn { from { opacity: 0; transform: translateY(16px) scale(.994); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(root) { animation: vtOut .2s var(--ease) both; }
-  ::view-transition-new(root) { animation: vtIn .28s var(--ease) both; }
+  ::view-transition-new(root) { animation: vtIn .38s var(--ease) both; }
+  ::view-transition-group(root) { animation-duration: .38s; animation-timing-function: var(--ease); }
 }
 
 /* ===== Toggle bahasa (ID/EN) ===== */
@@ -403,6 +457,10 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .fp-chair rect { fill: #fff; stroke: #A9BCD6; stroke-width: 1.5; }
 .fp-chair line { stroke: #A9BCD6; stroke-width: 1.5; stroke-linecap: round; }
 .fp-item.fp-sel { filter: drop-shadow(0 0 5px rgba(29, 78, 216, .65)); }
+.fp-chair.fp-sel { filter: drop-shadow(0 0 5px rgba(29, 78, 216, .65)); }
+.fp-chair.fp-sel rect { stroke: #1D4ED8; }
+.fp-chair.fp-sel line { stroke: #1D4ED8; }
+.fp-rtable { pointer-events: none; }
 
 @media (max-width: 640px) {
   .auth-chip { max-width: 150px; }

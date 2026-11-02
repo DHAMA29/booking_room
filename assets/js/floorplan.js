@@ -2,15 +2,19 @@
    Gamaspace — Floor Plan (Denah Ruangan)
    --------------------------------------------
    Renderer SVG denah ruangan: proyektor, layar, sound system,
-   papan tulis, podium, meja, pintu + susunan bangku.
+   papan tulis, podium, meja, meja bundar, pintu + susunan bangku.
    Dipakai bersama oleh:
    - app.js  → section "Denah ruangan" di halaman detail
    - admin.js → editor denah (drag & drop, admin dapat kustomisasi)
 
    Model data (tersimpan pada fasilitas sebagai `layout`):
    {
-     w: 12, h: 8,            // ukuran ruangan dalam satuan grid (meter-ish)
-     seats: 40,              // jumlah bangku (ditampilkan & digambar)
+     w: 12, h: 8,              // ukuran ruangan dalam satuan grid (meter-ish)
+     seats: 40,                // jumlah bangku (dihitung ulang utk mode rounds/custom)
+     seatMode: 'rows'          // 'rows' | 'circle' | 'rounds' | 'utable' | 'custom'
+     roundTables: 8,           // (mode rounds) jumlah meja bundar
+     roundChairs: 8,           // (mode rounds) kursi per meja
+     seatsCustom: [{x,y,rot}], // (mode custom) bangku manual — bisa digeser satu per satu
      items: [ { type:'screen', x:6, y:0.8, rot:0 }, ... ]
    }
    ============================================ */
@@ -25,25 +29,44 @@ window.CFB = window.CFB || {};
      ikon kini digambar berskala 1 unit grid = 1 meter.
      Layar 2,6 m; panggung 5 m; papan tulis 2 m; podium 0,75 m; pintu 1 m. */
   const TYPES = {
-    screen:     { label: 'plan.screen',     w: 2.6, solid: true },
-    stage:      { label: 'plan.stage',      w: 5.0, solid: true },
-    projector:  { label: 'plan.projector',  w: 1.1, solid: true },
-    sound:      { label: 'plan.sound',      w: 0.7, solid: true },
-    whiteboard: { label: 'plan.whiteboard', w: 2.0, solid: true },
-    podium:     { label: 'plan.podium',     w: 0.75, solid: true },
-    table:      { label: 'plan.table',      w: 1.9, solid: true },
-    door:       { label: 'plan.door',       w: 1.0, solid: false }
+    screen:      { label: 'plan.screen',      w: 2.6,  solid: true },
+    stage:       { label: 'plan.stage',       w: 5.0,  solid: true },
+    projector:   { label: 'plan.projector',   w: 1.1,  solid: true },
+    sound:       { label: 'plan.sound',       w: 0.7,  solid: true },
+    whiteboard:  { label: 'plan.whiteboard',  w: 2.0,  solid: true },
+    podium:      { label: 'plan.podium',      w: 0.75, solid: true },
+    table:       { label: 'plan.table',       w: 1.9,  solid: true },
+    'table-round': { label: 'plan.tableRound', w: 1.0, solid: true },
+    door:        { label: 'plan.door',        w: 1.0,  solid: false }
   };
+
+  /* Mode susunan bangku — dipakai parseLayout & editor admin */
+  const SEAT_MODES = ['rows', 'circle', 'rounds', 'utable', 'custom'];
 
   /* ---------- Sanitasi input (aman terhadap data korup) ---------- */
   function r05(n) { return Math.round(Number(n) * 2) / 2; }
 
   function parseLayout(raw) {
-    const out = { w: 12, h: 8, seats: 0, items: [] };
+    const out = { w: 12, h: 8, seats: 0, seatMode: 'rows',
+      roundTables: 4, roundChairs: 8, seatsCustom: [], items: [] };
     if (!raw || typeof raw !== 'object') return out;
     out.w = Math.min(30, Math.max(6, r05(raw.w) || 12));
     out.h = Math.min(24, Math.max(5, r05(raw.h) || 8));
     out.seats = Math.min(2000, Math.max(0, parseInt(raw.seats, 10) || 0));
+    out.seatMode = SEAT_MODES.indexOf(raw.seatMode) >= 0 ? raw.seatMode : 'rows';
+    out.roundTables = Math.min(12, Math.max(1, parseInt(raw.roundTables, 10) || 4));
+    out.roundChairs = Math.min(12, Math.max(3, parseInt(raw.roundChairs, 10) || 8));
+    /* Bangku manual (mode custom) — maksimal 300 titik */
+    if (Array.isArray(raw.seatsCustom)) {
+      raw.seatsCustom.slice(0, 300).forEach(sp => {
+        if (!sp || typeof sp !== 'object') return;
+        out.seatsCustom.push({
+          x: Math.min(out.w, Math.max(0, r05(sp.x))),
+          y: Math.min(out.h, Math.max(0, r05(sp.y))),
+          rot: ((parseInt(sp.rot, 10) || 0) % 360 + 360) % 360
+        });
+      });
+    }
     if (Array.isArray(raw.items)) {
       raw.items.slice(0, 40).forEach(it => {
         if (!it || !TYPES[it.type]) return;
@@ -55,6 +78,9 @@ window.CFB = window.CFB || {};
         });
       });
     }
+    /* Jumlah bangku selalu konsisten dengan mode susunannya */
+    if (out.seatMode === 'custom') out.seats = out.seatsCustom.length;
+    else if (out.seatMode === 'rounds') out.seats = out.roundTables * out.roundChairs;
     return out;
   }
 
@@ -101,6 +127,11 @@ window.CFB = window.CFB || {};
         return '<rect x="-24" y="-11" width="48" height="22" rx="4" fill="' + fillSoft + '" ' + st + '/>' +
                '<line x1="-17" y1="-11" x2="-17" y2="11" ' + st + '/>' +
                '<line x1="17" y1="-11" x2="17" y2="11" ' + st + '/>';
+      /* Meja bundar: lingkaran Ø 1 m dengan titik pusat — untuk susunan
+         rapat melingkar (bisa juga ditata manual dari editor). */
+      case 'table-round':
+        return '<circle r="24" fill="' + fillSoft + '" ' + st + '/>' +
+               '<circle r="7" fill="none" stroke="#A9BCD6" stroke-width="1.3"/>';
       /* Pintu: simbol arsitektural standar — ambang 1 m (garis tebal),
          daun pintu 1 m (tegak), lengkung ayunan 90° (putus-putus).
          Leaf mengayun ke arah -y lokal; rot mengatur orientasi dinding:
@@ -113,40 +144,273 @@ window.CFB = window.CFB || {};
     }
   }
 
-  /* ---------- Bangku ---------- */
-  function chairGlyph(cx, cy) {
-    return '<g class="fp-chair" transform="translate(' + cx + ' ' + cy + ')">' +
-      '<rect x="-8" y="-6" width="16" height="12" rx="2.6"/>' +
-      '<line x1="-8" y1="-9.5" x2="8" y2="-9.5"/>' +
+  /* ---------- Bangku ----------
+     Sandaran digambar di sisi +y lokal → kursi "menghadap" arah -y.
+     rot (derajat, searah jarum jam) memutar arah hadap:
+       0 = menghadap atas (area depan/panggung), 90 = kanan, 270 = kiri, 180 = bawah. */
+  const CHAIR_GLYPH = '<rect x="-8" y="-6" width="16" height="12" rx="2.6"/>' +
+                      '<line x1="-8" y1="9.5" x2="8" y2="9.5"/>';
+
+  /* Meja bundar otomatis pada mode "rounds" (bukan item yang bisa dipilih) */
+  function roundTableGlyph(cx, cy) {
+    return '<g class="fp-rtable" transform="translate(' + cx + ' ' + cy + ')">' +
+      '<circle r="24" fill="#F7FAFF" stroke="#A9BCD6" stroke-width="1.5"/>' +
+      '<circle r="7" fill="none" stroke="#C7D4E8" stroke-width="1.3"/>' +
       '</g>';
   }
 
-  /* Bangku digambar sebagai deretan menghadap area depan (atas).
-     Maksimal 60 glyph digambar — jumlah sebenarnya tampil pada badge. */
-  function seatsSVG(layout, uid) {
-    const seats = Math.min(layout.seats, 60);
-    if (seats <= 0) return '';
-    const cols = Math.min(10, Math.max(3, Math.ceil(Math.sqrt(seats * 1.7))));
-    const rows = Math.ceil(seats / cols);
-    const areaTop = layout.h * 0.32;
-    const areaH = layout.h - areaTop - 0.8;
-    const stepX = (layout.w - 1.6) / Math.max(1, cols - 0);
-    const stepY = Math.min(stepX, areaH / Math.max(1, rows));
-    const startX = 0.8 + stepX / 2;
-    const startY = areaTop + Math.max(0.7, (areaH - (rows - 1) * stepY) / 2);
-    let s = '';
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const idx = r * cols + c;
-        if (idx >= seats) break;
-        s += chairGlyph((startX + c * stepX) * S, (startY + r * stepY) * S);
-      }
+  /* ---------- Posisi bangku per mode susunan ----------
+     Menghasilkan { seats: [{x, y, rot}], tables: [{x, y}], pitch: number }
+     dalam satuan grid. `pitch` = jarak antar-pusat bangku terkecil pada
+     mode otomatis — dipakai untuk mengecilkan ikon bangku bila ruangan
+     sempit (bug: 150 kursi atau lebih berdempetan / tidak menyesuaikan). */
+  function seatPositions(layout) {
+    const seats = [], tables = [];
+    const L = layout;
+    const areaTop = L.h * 0.32;          // area depan (panggung/perangkat) 32% atas
+    const cx = L.w / 2;
+    const cy = areaTop + (L.h - areaTop) / 2;
+
+    /* Manual — setiap bangku punya posisi & arah hadap sendiri */
+    if (L.seatMode === 'custom') {
+      (L.seatsCustom || []).forEach(sp => seats.push({ x: sp.x, y: sp.y, rot: sp.rot || 0 }));
+      return { seats: seats, tables: tables, pitch: 0 };
     }
+
+    /* Meja bundar — grid meja bulat, kursi melingkar mengelilingi tiap meja */
+    if (L.seatMode === 'rounds') {
+      const nT = Math.max(1, Math.min(12, L.roundTables | 0 || 4));
+      const per = Math.max(3, Math.min(12, L.roundChairs | 0 || 8));
+      const bandL = 1.35, bandT = areaTop + 1.35;
+      const bandW = Math.max(0, L.w - 2 * bandL);
+      const bandH = Math.max(0, (L.h - 1.35) - bandT);
+      /* grid secukupnya: kolom maksimal agar meja tidak berhimpit */
+      const maxCols = Math.max(1, Math.min(nT, Math.floor(bandW / 2.5) + 1));
+      const maxRows = Math.max(1, Math.floor(bandH / 2.5) + 1);
+      let cols = Math.min(nT, maxCols);
+      let rowsT = Math.ceil(nT / cols);
+      if (rowsT > maxRows) {
+        cols = Math.min(nT, Math.max(maxCols, Math.ceil(nT / maxRows)));
+        rowsT = Math.ceil(nT / cols);
+      }
+      const stepX = cols > 1 ? Math.min(2.9, bandW / (cols - 1)) : 0;
+      const stepY = rowsT > 1 ? Math.min(2.9, bandH / (rowsT - 1)) : 0;
+      const startX = cx - (stepX * (cols - 1)) / 2;
+      const startY = bandT + (bandH - stepY * (rowsT - 1)) / 2;
+      const orbit = per > 8 ? 1.2 : 1.05;
+      let pitch = (2 * Math.PI * orbit) / per;          // jarak busur antar-kursi
+      let cross = Infinity;                            // jarak kursi antar-meja terdekat
+      for (let t = 0; t < nT; t++) {
+        const tx = startX + (t % cols) * stepX;
+        const ty = startY + Math.floor(t / cols) * stepY;
+        tables.push({ x: tx, y: ty });
+        for (let c = 0; c < per; c++) {
+          const deg = -90 + c * 360 / per;               // mulai dari atas meja
+          const th = deg * Math.PI / 180;
+          seats.push({
+            x: tx + orbit * Math.cos(th),
+            y: ty + orbit * Math.sin(th),
+            rot: ((deg - 90) % 360 + 360) % 360           // menghadap pusat meja
+          });
+        }
+        if (stepX > 0) cross = Math.min(cross, stepX - 2 * orbit);
+        if (stepY > 0) cross = Math.min(cross, stepY - 2 * orbit);
+      }
+      if (cross < pitch) pitch = cross;
+      return { seats: seats, tables: tables, pitch: Math.max(0.2, pitch) };
+    }
+
+    /* Lingkaran — bangku pada elips menghadap pusat ruangan.
+       Revisi: cincin konsentris dari luar ke dalam; titik tiap cincin
+       dibagi rata sepanjang BUSUR (bukan sudut) agar jarak seragam.
+       Bila n melebihi kapasitas nyaman seluruh cincin, sisanya dibagikan
+       proporsional-merata ke semua cincin (padat, tanpa tumpuk). */
+    if (L.seatMode === 'circle') {
+      const n = Math.max(0, Math.min(2000, L.seats | 0));
+      const PITCH = 0.55, GAP = 0.62, MAXR = 8;
+      const rings = [];
+      let rx = Math.max(1.6, L.w / 2 - 1.2);
+      let ry = Math.max(1.3, (L.h - areaTop) / 2 - 1.0);
+      while (rings.length < MAXR && ry >= 0.55 && rx >= 0.8) {
+        rings.push({ rx: rx, ry: ry, per: ellipsePerim(rx, ry) });
+        const nextRy = ry - GAP;
+        if (nextRy < 0.55) break;
+        rx = rx * (nextRy / ry);   // cincin sejenis — jarak atas tepat GAP
+        ry = nextRy;
+      }
+      const P = rings.reduce((a, r) => a + r.per, 0);
+      let worst = Infinity;
+      if (n > 0 && P > 0 && rings.length) {
+        const capTotal = Math.floor(P / PITCH);
+        if (n <= capTotal) {
+          /* muat: isi tiap cincin dari luar sesuai kapasitas — tampilan
+             ruangan terkonfigurasi baik tetap seperti sebelumnya */
+          let remaining = n;
+          rings.forEach(rg => {
+            if (remaining <= 0) return;
+            const cap = Math.max(4, Math.floor(rg.per / PITCH));
+            const m = Math.min(remaining, cap);
+            ringSeats(cx, cy, rg.rx, rg.ry, m, 0, seats);
+            const p = rg.per / Math.max(1, m);
+            if (p < worst) worst = p;
+            remaining -= m;
+          });
+          if (remaining > 0) {          // pengaman — seharusnya tak terjadi
+            const last = rings[rings.length - 1];
+            ringSeats(cx, cy, last.rx, last.ry, remaining, 0.5, seats);
+            const p = last.per / remaining;
+            if (p < worst) worst = p;
+          }
+        } else {
+          /* tidak muat pada jarak nyaman: bagikan proporsional ke semua
+             cincin (padat merata) — penskalaan ikon menangani sisanya */
+          const ms = rings.map(() => 0);
+          let placed = 0;
+          rings.forEach((rg, k) => {
+            if (k < rings.length - 1) {
+              ms[k] = Math.max(1, Math.round(n * rg.per / P));
+              placed += ms[k];
+            }
+          });
+          ms[rings.length - 1] = Math.max(1, n - placed);
+          rings.forEach((rg, k) => ringSeats(cx, cy, rg.rx, rg.ry, ms[k], 0, seats));
+          worst = P / n;
+        }
+      }
+      return { seats: seats, tables: tables, pitch: worst === Infinity ? 0 : Math.max(0.18, worst) };
+    }
+
+    /* Bentuk U — dua lengan vertikal + satu sisi bawah, terbuka ke area depan.
+       Revisi: seluruh n kursi terbagi proporsional (tanpa drop tersembunyi);
+       kepadatan berlebih ditangani penskalaan ikon bangku. */
+    if (L.seatMode === 'utable') {
+      const n = Math.max(0, Math.min(2000, L.seats | 0));
+      if (n) {
+        const top = areaTop + 0.7, bot = L.h - 0.9;
+        const left = 1.1, right = L.w - 1.1;
+        const colH = Math.max(0.5, bot - top);
+        const botW = Math.max(0.5, right - left);
+        const perim = 2 * colH + botW;
+        let nL = Math.max(1, Math.round(n * colH / perim));
+        if (nL * 2 > n) nL = Math.max(0, Math.floor(n / 2));
+        let nR = nL;
+        let nB = Math.max(0, n - nL - nR);
+        if (nB === 0 && n <= 2) { nL = Math.ceil(n / 2); nR = n - nL; }
+        for (let i = 0; i < nL; i++) seats.push({ x: left,  y: top + colH * (i + 0.5) / nL, rot: 90 });   // menghadap kanan
+        for (let i = 0; i < nR; i++) seats.push({ x: right, y: top + colH * (i + 0.5) / nR, rot: 270 });  // menghadap kiri
+        for (let i = 0; i < nB; i++) seats.push({ x: left + botW * (i + 0.5) / nB, y: bot, rot: 0 });     // menghadap atas
+        const pL = nL ? colH / nL : Infinity;
+        const pR = nR ? colH / nR : Infinity;
+        const pB = nB ? botW / nB : Infinity;
+        return { seats: seats, tables: tables, pitch: Math.min(pL, pR, pB) };
+      }
+      return { seats: seats, tables: tables, pitch: 0 };
+    }
+
+    /* Baris (teater) — deretan menghadap area depan (atas).
+       Revisi: jumlah kolom dipilih agar jarak antar-bangku TERKECIL
+       sebesar mungkin (maksimum dari min(langkahX, langkahY)) — dulu
+       dikunci maks 10 kolom sehingga 150+ kursi berhimpit vertikal. */
+    const n = Math.max(0, Math.min(2000, L.seats | 0));
+    if (n) {
+      const areaH = L.h - areaTop - 0.8;
+      const spanX = L.w - 1.6;
+      let best = null;
+      const maxCols = Math.max(3, Math.min(30, n));
+      for (let c = 3; c <= maxCols; c++) {
+        const r = Math.ceil(n / c);
+        const sx = spanX / c;
+        const sy = areaH > 0 ? areaH / r : sx;
+        const m = Math.min(sx, sy);
+        if (!best || m > best.m) best = { c: c, r: r, m: m, sx: sx, sy: sy };
+      }
+      const cols = best.c, rows = best.r;
+      const stepX = best.sx;
+      const stepY = Math.min(stepX, best.sy);   // grid rapi: vertikal mengikuti horizontal
+      const startX = 0.8 + stepX / 2;
+      const startY = areaTop + Math.max(0.7, (areaH - (rows - 1) * stepY) / 2);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const idx = r * cols + c;
+          if (idx >= n) break;
+          seats.push({ x: startX + c * stepX, y: startY + r * stepY, rot: 0 });
+        }
+      }
+      return { seats: seats, tables: tables, pitch: best.m };
+    }
+    return { seats: seats, tables: tables, pitch: 0 };
+  }
+
+  /* Keliling elips — aproksimasi Ramanujan #2 */
+  function ellipsePerim(rx, ry) {
+    return Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+  }
+
+  /* Titik merata sepanjang BUSUR elips — distribusi merata sudut
+     justru menumpuk kursi di sisi kiri/kanan elips. */
+  function ringSeats(cx, cy, rx, ry, m, phase, seats) {
+    if (m <= 0) return;
+    const N = 720;
+    const arc = new Array(N + 1);
+    arc[0] = 0;
+    let px = rx, py = 0, total = 0;
+    for (let i = 1; i <= N; i++) {
+      const th = (i / N) * Math.PI * 2;
+      const nx = rx * Math.cos(th), ny = ry * Math.sin(th);
+      total += Math.hypot(nx - px, ny - py);
+      arc[i] = total;
+      px = nx; py = ny;
+    }
+    for (let i = 0; i < m; i++) {
+      const s = ((i + (phase || 0)) / m) * total;
+      let lo = 0, hi = N;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (arc[mid] < s) lo = mid + 1; else hi = mid; }
+      const i1 = Math.max(1, lo);
+      const t0 = arc[i1 - 1], t1 = arc[i1];
+      const f = t1 > t0 ? (s - t0) / (t1 - t0) : 0;
+      const th = ((i1 - 1) + f) / N * Math.PI * 2;
+      const deg = th * 180 / Math.PI;
+      seats.push({
+        x: cx + rx * Math.cos(th),
+        y: cy + ry * Math.sin(th),
+        rot: ((deg - 90) % 360 + 360) % 360   // menghadap pusat
+      });
+    }
+  }
+
+  /* Skala ikon bangku bila jarak antar-bangku terlalu rapat —
+     kursi tetap terpisah jelas walau ruangan padat (150+). */
+  function chairScale(pitch) {
+    if (!pitch || pitch >= 0.55) return 1;
+    return Math.max(0.35, pitch / 0.55);
+  }
+
+  /* Bangku digambar dari seatPositions — mode otomatis menggambar
+     seluruh bangku (maks. 2000); jarak rapat ditangani penskalaan ikon.
+     Mode manual menggambar semua & opsional interaktif (editor admin). */
+  function seatsSVG(layout, uid, opts) {
+    opts = opts || {};
+    const pos = seatPositions(layout);
+    if (!pos.seats.length && !pos.tables.length) return '';
+    let s = '';
+    (pos.tables || []).forEach(t => { s += roundTableGlyph(t.x * S, t.y * S); });
+    const manual = layout.seatMode === 'custom';
+    const list = manual ? pos.seats : pos.seats.slice(0, 2000);
+    const sc = chairScale(pos.pitch);
+    list.forEach((p, i) => {
+      const inter = manual && opts.interactive;
+      s += '<g class="fp-chair' + (inter ? ' fp-seat' : '') + (inter && opts.selSeat === i ? ' fp-sel' : '') + '"' +
+        (inter ? ' data-seat="' + i + '" tabindex="0" role="button" aria-label="' + T('plan.seat') + '"' : '') +
+        ' transform="translate(' + (p.x * S) + ' ' + (p.y * S) + ')' + (p.rot ? ' rotate(' + p.rot + ')' : '') + (sc < 1 ? ' scale(' + sc + ')' : '') + '">' +
+        (inter ? '<title>' + T('plan.seat') + '</title>' : '') +
+        CHAIR_GLYPH +
+        '</g>';
+    });
     return s;
   }
 
   /* ---------- Renderer utama ----------
-     opts: { interactive:bool, uid:string, selected:index|null, showLegend:bool } */
+     opts: { interactive:bool, uid:string, selected:index|null, selSeat:index|null, showLegend:bool } */
   function render(layoutRaw, opts) {
     opts = opts || {};
     const layout = parseLayout(layoutRaw);
@@ -168,7 +432,7 @@ window.CFB = window.CFB || {};
         '</g>';
     });
 
-    const seats = seatsSVG(layout, uid);
+    const seats = seatsSVG(layout, uid, opts);
 
     const svg =
       '<svg class="fp-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" preserveAspectRatio="xMidYMid meet" ' +
@@ -180,7 +444,6 @@ window.CFB = window.CFB || {};
       '</defs>' +
       '<rect x="1.5" y="1.5" width="' + (W - 3) + '" height="' + (H - 3) + '" rx="10" fill="#FDFEFF" stroke="#C7D4E8" stroke-width="2.5"/>' +
       '<rect x="1.5" y="1.5" width="' + (W - 3) + '" height="' + (H - 3) + '" rx="10" fill="url(#' + uid + '-grid)"/>' +
-      (layout.seats > 60 ? '' : '') +
       seats +
       items +
       '</svg>';
@@ -204,5 +467,5 @@ window.CFB = window.CFB || {};
     return html;
   }
 
-  CFB.floorplan = { TYPES, parseLayout, hasLayout, render, legendHTML, iconSVG, S };
+  CFB.floorplan = { TYPES, SEAT_MODES, parseLayout, hasLayout, render, legendHTML, iconSVG, seatPositions, chairScale, ellipsePerim, ringSeats, S };
 })();

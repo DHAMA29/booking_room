@@ -362,7 +362,7 @@
 
 /* ===== Kartu bukti pengajuan ===== */
 .proof-row { display: flex; margin-bottom: 8px; }
-.bi-proof-row { display: flex; margin-top: 14px; }
+.bi-proof-row { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 14px; }
 .btn-proof {
   display: inline-flex; align-items: center; gap: 7px;
   border: 1px solid var(--line); background: var(--bg); color: var(--accent);
@@ -370,6 +370,36 @@
   transition: border-color .15s, background .15s;
 }
 .btn-proof:hover { border-color: var(--accent); background: var(--accent-soft); }
+.btn-proof.danger { color: var(--danger); }
+.btn-proof.danger:hover { border-color: var(--danger); background: var(--danger-soft); }
+
+/* ===== Kotak kode check-in (panel riwayat, status Approved/Checked-in) ===== */
+.checkin-box {
+  display: flex; flex-direction: column; gap: 3px;
+  margin: 2px 0 14px; padding: 12px 16px;
+  background: var(--accent-soft); border: 1px solid #BFDBFE; border-radius: 10px;
+}
+.checkin-box .cb-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent);
+}
+.checkin-box .cb-code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 26px; font-weight: 800; letter-spacing: .3em;
+  color: #14235A; line-height: 1.15;
+}
+.checkin-box .cb-hint { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+
+/* ===== Banner pengajuan ulang (form request) ===== */
+.res-banner {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin: 0 0 16px; padding: 12px 14px;
+  background: var(--warning-soft); border: 1px solid #FDE68A; border-radius: 10px;
+  font-size: 13.5px; color: #92400E; line-height: 1.6;
+}
+.res-banner svg { flex-shrink: 0; margin-top: 2px; color: var(--warning-2); }
+.res-banner p { margin: 0; }
+.res-banner strong { color: #7C2D12; }
 .proof-modal { max-width: 760px; }
 .proof-modal .pm-close { position: absolute; top: 14px; right: 14px; }
 .proof-preview {
@@ -380,3 +410,5 @@
   width: 100%; height: auto; display: block;
   border-radius: 8px; background: #fff; box-shadow: var(--shadow-sm);
 }
+.btn-proof.success { color: var(--success, #047857); }
+.btn-proof.success:hover { border-color: var(--success, #047857); background: #ECFDF5; }

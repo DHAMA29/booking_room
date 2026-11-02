@@ -18,9 +18,12 @@ window.CFB = window.CFB || {};
   const W = 1000, H = 620;   // ukuran logis; canvas aktual 2x agar tajam
 
   const STATUS = {
-    Approved: { label: 'book.Approved', fg: '#15803D', bg: '#F0FDF4', line: '#BBF7D0' },
-    Rejected: { label: 'book.Rejected', fg: '#B91C1C', bg: '#FEF2F2', line: '#FECACA' },
-    Pending:  { label: 'book.Pending',  fg: '#B45309', bg: '#FFFBEB', line: '#FDE68A' }
+    Approved:   { label: 'book.Approved',   fg: '#15803D', bg: '#F0FDF4', line: '#BBF7D0' },
+    Rejected:   { label: 'book.Rejected',   fg: '#B91C1C', bg: '#FEF2F2', line: '#FECACA' },
+    Pending:    { label: 'book.Pending',    fg: '#B45309', bg: '#FFFBEB', line: '#FDE68A' },
+    'Checked-in': { label: 'book.CheckedIn', fg: '#1D4ED8', bg: '#EFF4FF', line: '#BFDBFE' },
+    'Selesai':    { label: 'book.Completed', fg: '#0F766E', bg: '#F0FDFA', line: '#99F6E4' },
+    'Cancelled':  { label: 'book.Cancelled', fg: '#475569', bg: '#F1F5F9', line: '#E2E8F0' }
   };
 
   /* ---------- QR ---------- */
@@ -100,23 +103,31 @@ window.CFB = window.CFB || {};
     ctx.beginPath(); ctx.arc(W - 44 - stw + 18, 59, 4, 0, Math.PI * 2); ctx.fillStyle = st.fg; ctx.fill();
     txt(ctx, stLabel, W - 44 - stw + 30, 63.5, '700 12px ' + inter, st.fg, { base: 'middle' });
 
-    // nomor referensi besar
-    txt(ctx, String(b.id || ''), 44, 148, '800 34px ' + mono, ink);
+    // nomor referensi besar — font sans (Inter) agar tampil RAPI & konsisten
+    // di semua perangkat; font mono bawaan perangkat sering lebar/berantakan.
+    txt(ctx, String(b.id || ''), 44, 148, '800 31px ' + inter, ink, { letter: 1.2 });
 
     // garis pemisah
     ctx.strokeStyle = line; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(44, 176); ctx.lineTo(W - 44, 176); ctx.stroke();
 
     // ===== QR (kanan) =====
-    const qrText = ['GMS-PROOF', b.id, b.facilityId, b.date,
-      (b.startHour != null ? (String(b.startHour).padStart(2, '0') + ':00') : '') + '-' +
-      (b.endHour != null ? (String(b.endHour).padStart(2, '0') + ':00') : ''), b.nim].join('|');
-    const m = qrMatrix(qrText);
+    /* QR HANYA aktif setelah pengajuan disetujui (Approved / Checked-in).
+       Saat masih menunggu persetujuan, kotak QR diganti pesan singkat —
+       peminjam tidak lagi melihat QR yang belum bisa dipindai petugas.
+       Payload QR memuat identitas pengajuan + kode check-in (field
+       terakhir); petugas memindainya lewat menu Scanner. */
+    const qrReady = (b.status === 'Approved' || b.status === 'Checked-in') && !!b.checkinCode;
     const qrBox = 168, qrX = W - 44 - qrBox, qrY = 204;
     roundRect(ctx, qrX, qrY, qrBox, qrBox, 12);
     ctx.fillStyle = '#FFFFFF'; ctx.fill();
     ctx.strokeStyle = line; ctx.lineWidth = 1.4; ctx.stroke();
-    if (m) {
+    if (qrReady) {
+      const qrText = ['GMS-PROOF', b.id, b.facilityId, b.date,
+        (b.startHour != null ? (String(b.startHour).padStart(2, '0') + ':00') : '') + '-' +
+        (b.endHour != null ? (String(b.endHour).padStart(2, '0') + ':00') : ''), b.nim,
+        b.checkinCode || ''].join('|');
+      const m = qrMatrix(qrText);
       const pad = 14, cell = (qrBox - pad * 2) / m.length;
       ctx.fillStyle = '#0F172A';
       for (let r = 0; r < m.length; r++) {
@@ -124,8 +135,31 @@ window.CFB = window.CFB || {};
           if (m[r][c]) ctx.fillRect(qrX + pad + c * cell, qrY + pad + r * cell, Math.ceil(cell), Math.ceil(cell));
         }
       }
+      txt(ctx, T('proof.qr'), qrX + qrBox / 2, qrY + qrBox + 22, '600 11.5px ' + inter, sub, { align: 'center' });
+      /* Kode check-in di bawah QR */
+      txt(ctx, T('proof.checkin.code').toUpperCase(), qrX + qrBox / 2, qrY + qrBox + 44, '600 9.5px ' + inter, faint, { align: 'center', letter: 1.4 });
+      txt(ctx, String(b.checkinCode).toUpperCase(), qrX + qrBox / 2, qrY + qrBox + 66, '800 24px ' + mono, '#1E3A8A', { align: 'center', letter: 2 });
+      txt(ctx, T('proof.qr.checkin'), qrX + qrBox / 2, qrY + qrBox + 86, '500 10px ' + inter, sub, { align: 'center' });
+    } else {
+      /* Placeholder QR — sesuai status pengajuan (bukan selalu "menunggu") */
+      const s = String(b.status || 'Pending');
+      const ph = (s === 'Rejected') ? { t: T('proof.qr.rejTitle'), l1: T('proof.qr.no1') }
+               : (s === 'Cancelled') ? { t: T('proof.qr.canTitle'), l1: T('proof.qr.no1') }
+               : (s === 'Selesai')   ? { t: T('proof.qr.doneTitle'), l1: T('proof.qr.done1') }
+               : { t: T('proof.qr.waitTitle'), l1: T('proof.qr.wait1'), l2: T('proof.qr.wait2') };
+      ctx.save();
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1.4;
+      roundRect(ctx, qrX + 10, qrY + 10, qrBox - 20, qrBox - 20, 8); ctx.stroke();
+      ctx.restore();
+      const cx = qrX + qrBox / 2;
+      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(cx, qrY + 62, 13, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, qrY + 56); ctx.lineTo(cx, qrY + 63); ctx.lineTo(cx + 5, qrY + 66); ctx.stroke();
+      txt(ctx, ph.t, cx, qrY + 102, '700 12px ' + inter, '#475569', { align: 'center' });
+      txt(ctx, ph.l1, cx, qrY + 122, '500 10.5px ' + inter, faint, { align: 'center' });
+      if (ph.l2) txt(ctx, ph.l2, cx, qrY + 138, '500 10.5px ' + inter, faint, { align: 'center' });
     }
-    txt(ctx, T('proof.qr'), qrX + qrBox / 2, qrY + qrBox + 22, '600 11.5px ' + inter, sub, { align: 'center' });
 
     // ===== kolom data (kiri) =====
     const fields = [
@@ -151,9 +185,12 @@ window.CFB = window.CFB || {};
     ctx.strokeStyle = line;
     ctx.beginPath(); ctx.moveTo(44, H - 74); ctx.lineTo(W - 44, H - 74); ctx.stroke();
     txt(ctx, T('proof.show'), 44, H - 44, '500 12.5px ' + inter, sub);
-    const genDate = new Date().toLocaleString(L, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    /* Dibuat: SELALU WIB — waktu resmi sistem, bukan jam perangkat */
+    const genDate = (CFB.util && CFB.util.fmtDateTime)
+      ? CFB.util.fmtDateTime(new Date().toISOString())
+      : new Date().toLocaleString(L) + ' WIB';
     txt(ctx, T('proof.generated', { date: genDate }), 44, H - 24, '400 11px ' + inter, faint);
-    txt(ctx, 'campus-facility-booking', W - 44, H - 24, '400 11px ' + mono, faint, { align: 'right' });
+    txt(ctx, 'Gamaspace', W - 44, H - 24, '600 11px ' + inter, faint, { align: 'right', letter: 0.8 });
     return canvas;
   }
 
