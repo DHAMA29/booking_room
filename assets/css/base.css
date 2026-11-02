@@ -256,6 +256,20 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
   .footer-bottom { flex-direction: column; gap: 10px; }
   .footer-brand { font-size: 26px; }
   .site-footer { padding: 54px 0 38px; }
+
+  /* Modal: nyaman di ponsel — hampir penuh, padding hemat */
+  .modal-overlay { padding: 12px; }
+  .modal-card { max-height: calc(100dvh - 24px); padding: 22px 16px 18px; }
+  .modal-card .modal-actions { flex-direction: column-reverse; }
+  .modal-card .modal-actions .btn-primary,
+  .modal-card .modal-actions .btn-ghost { width: 100%; }
+
+  /* iOS/Android memperbesar layar bila input < 16px — kunci 16px
+     pada ponsel agar fokus tetap stabil saat mengisi formulir */
+  input, select, textarea { font-size: 16px !important; }
+
+  /* Menu akun (dropdown) tidak terpotong tepi kanan */
+  .auth-menu { right: 0; min-width: 190px; }
 }
 
 /* ============================================

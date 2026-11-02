@@ -175,13 +175,19 @@ window.CFB = window.CFB || {};
       'auth/user-not-found': 'Akun tidak ditemukan. Daftar terlebih dahulu.',
       'auth/wrong-password': 'Kata sandi salah.',
       'auth/invalid-credential': 'Email atau kata sandi salah.',
+      'auth/invalid-login-credentials': 'Email atau kata sandi salah.',
       'auth/email-already-in-use': 'Email sudah terdaftar — silakan masuk.',
       'auth/weak-password': 'Kata sandi terlalu lemah (minimal 6 karakter).',
       'auth/popup-closed-by-user': 'Jendela Google ditutup sebelum selesai.',
       'auth/popup-blocked': 'Popup diblokir browser — izinkan popup untuk situs ini.',
-      'auth/unauthorized-domain': 'Domain ini belum diizinkan di Firebase Console → Authentication → Settings → Authorized domains.',
-      'auth/operation-not-allowed': 'Metode login ini belum diaktifkan di Firebase Console → Authentication → Sign-in method.',
-      'auth/network-request-failed': 'Koneksi jaringan gagal. Periksa internet Anda.'
+      'auth/cancelled-popup-request': 'Hanya satu jendela login yang bisa dibuka — tutup jendela sebelumnya.',
+      'auth/unauthorized-domain': 'Domain ini belum diizinkan di Firebase Console → Authentication → Settings → Authorized domains (tambahkan domain tempat situs dihosting).',
+      'auth/operation-not-allowed': 'Metode login ini belum diaktifkan di Firebase Console → Authentication → Sign-in method (aktifkan Google dan/atau Email/Password).',
+      'auth/configuration-not-found': 'Firebase Authentication belum disiapkan — buka Firebase Console → Authentication → Get started, lalu aktifkan metode login.',
+      'auth/admin-restricted-operation': 'Firebase Authentication belum disiapkan — buka Firebase Console → Authentication → Get started.',
+      'auth/network-request-failed': 'Koneksi jaringan gagal. Periksa internet Anda.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan — tunggu sebentar lalu coba lagi.',
+      'auth/user-disabled': 'Akun ini dinonaktifkan. Hubungi pengelola sistem.'
     };
     return map[code] || ((e && e.message) ? String(e.message).replace('Firebase: ', '').replace(/\(auth.*\)\.?/, '').trim() : 'Terjadi kesalahan saat masuk.');
   }

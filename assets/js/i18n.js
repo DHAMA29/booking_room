@@ -133,11 +133,28 @@ window.CFB = window.CFB || {};
       'ptg.err.root': 'Email ini adalah pengelola utama sistem.',
       'ptg.err.self': 'Email ini adalah akun Anda sendiri.',
       'ptg.err.local': 'Penambahan petugas hanya aktif saat terhubung ke server.',
-      'ptg.err.rules': 'Penyimpanan ditolak Rules — buka akses node /petugas (lihat README).',
+      'ptg.err.rules': 'Rules database belum membuka node /petugas. Buka Firebase Console → Realtime Database → Rules, lalu tambahkan baris "petugas": { ".read": true, ".write": true } dan publish ulang (lihat README → Setup Firebase).',
       'ptg.toast.added.title': 'Petugas ditambahkan',
       'ptg.toast.added.msg': '{email} kini dapat masuk sebagai Petugas Lapangan.',
       'ptg.toast.removed.title': 'Akses petugas dihapus',
       'ptg.toast.removed.msg': '{email} dihapus dari daftar petugas.',
+
+      // ===== Gate admin: login Google + catatan konfigurasi =====
+      'gate.unconfigured': 'Login belum dikonfigurasi — isi apiKey & authDomain pada assets/js/firebase-config.js (lihat panduan di file yang sama).',
+      'gate.cfgnote': 'Login belum aktif. Aktifkan dengan 3 langkah: (1) isi <code>apiKey</code> & <code>authDomain</code> pada <code>assets/js/firebase-config.js</code>, (2) aktifkan metode <em>Google</em> dan <em>Email/Password</em> di Firebase Console → Authentication → Sign-in method, (3) tambahkan domain situs ini ke Authentication → Settings → Authorized domains. Panduan lengkap: <code>SETUP-FIREBASE.md</code>.',
+      'gate.denied.dbdenied': 'Panel ini sedang berjalan <strong>mode lokal</strong> — Rules database menolak akses. Admin/petugas baru tidak dapat ditambahkan sampai Rules membuka node <code>admins</code> dan <code>petugas</code> (lihat README → Setup Firebase).',
+      'gate.denied.dboff': 'Panel ini sedang berjalan <strong>mode lokal</strong> — database online tidak dapat dijangkau. Admin/petugas baru hanya tersimpan permanen setelah koneksi database aktif.',
+
+      // ===== Banner status penyimpanan (admin) =====
+      'sb.seed.msg': 'Basis data online aktif tetapi belum berisi data fasilitas — daftar saat ini memakai data awal lokal. Pengajuan mahasiswa sudah tersinkron antar perangkat. Simpan data fasilitas ke server secara permanen:',
+      'sb.seed.btn': 'Unggah data awal',
+      'sb.seed.done.t': 'Data awal terunggah',
+      'sb.seed.done.m': '{n} fasilitas + jadwal ketersediaan tersimpan ke Firebase Realtime Database.',
+      'sb.seed.fail.t': 'Unggah gagal',
+      'sb.seed.fail.m': 'Periksa Rules node facilities/availability lalu coba lagi.',
+      'sb.local.title': 'Mode lokal aktif — data tidak tersinkron.',
+      'sb.local.denied': 'Rules database menolak akses (periksa Rules pada Firebase Console — lihat README → Setup Firebase). Pengajuan yang masuk saat ini tersimpan hanya pada perangkat ini.',
+      'sb.local.unreachable': 'Database online tidak dapat dijangkau (offline / URL salah). Pengajuan yang masuk saat ini tersimpan hanya pada perangkat ini.',
 
       // ===== Konfirmasi singkat Admin Panel (setuju, tolak, hapus, dll.) =====
       'c.del': 'Ya, hapus',
@@ -650,11 +667,28 @@ window.CFB = window.CFB || {};
       'ptg.err.root': 'This email is the system’s primary manager.',
       'ptg.err.self': 'This email is your own account.',
       'ptg.err.local': 'Adding officers only works while connected to the server.',
-      'ptg.err.rules': 'Storage was rejected by the Rules — open access to the /petugas node (see README).',
+      'ptg.err.rules': 'The database Rules do not allow access to the /petugas node. Open Firebase Console → Realtime Database → Rules, add the line "petugas": { ".read": true, ".write": true }, then republish (see README → Setup Firebase).',
       'ptg.toast.added.title': 'Officer added',
       'ptg.toast.added.msg': '{email} can now sign in as a Field Officer.',
       'ptg.toast.removed.title': 'Officer access removed',
       'ptg.toast.removed.msg': '{email} was removed from the officer list.',
+
+      // ===== Admin gate: Google login + configuration note =====
+      'gate.unconfigured': 'Login is not configured yet — fill apiKey & authDomain in assets/js/firebase-config.js (see the guide inside that file).',
+      'gate.cfgnote': 'Login is not active yet. Enable it in 3 steps: (1) fill <code>apiKey</code> & <code>authDomain</code> in <code>assets/js/firebase-config.js</code>, (2) enable <em>Google</em> and <em>Email/Password</em> under Firebase Console → Authentication → Sign-in method, (3) add this site’s domain to Authentication → Settings → Authorized domains. Full guide: <code>SETUP-FIREBASE.md</code>.',
+      'gate.denied.dbdenied': 'This panel is running in <strong>local mode</strong> — database Rules denied access. New admins/officers cannot be added until the Rules open the <code>admins</code> and <code>petugas</code> nodes (see README → Setup Firebase).',
+      'gate.denied.dboff': 'This panel is running in <strong>local mode</strong> — the online database cannot be reached. New admins/officers are only stored permanently once the database connection is active.',
+
+      // ===== Storage status banner (admin) =====
+      'sb.seed.msg': 'The online database is active but has no facility data yet — the current list uses the local starter data. Student bookings are already syncing across devices. Store the facility data on the server permanently:',
+      'sb.seed.btn': 'Upload starter data',
+      'sb.seed.done.t': 'Starter data uploaded',
+      'sb.seed.done.m': '{n} facilities + availability schedule were saved to Firebase Realtime Database.',
+      'sb.seed.fail.t': 'Upload failed',
+      'sb.seed.fail.m': 'Check the Rules for the facilities/availability nodes, then try again.',
+      'sb.local.title': 'Local mode active — data is not syncing.',
+      'sb.local.denied': 'Database Rules denied access (check the Rules in Firebase Console — see README → Setup Firebase). Bookings submitted now are stored on this device only.',
+      'sb.local.unreachable': 'The online database cannot be reached (offline / wrong URL). Bookings submitted now are stored on this device only.',
 
       // ===== Short Admin Panel confirmations (approve, reject, delete, etc.) =====
       'c.del': 'Yes, delete',

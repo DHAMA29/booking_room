@@ -223,7 +223,16 @@ window.CFB = window.CFB || {};
     SEED_AVAIL = normalizeAvail(availability);
   }
 
-  /* Coba ambil data dari Firebase. true = mode firebase aktif. */
+  /* Coba ambil data dari Firebase. true = mode firebase aktif.
+
+     Kasus khusus — node `facilities` KOSONG (belum di-seed):
+     mode firebase TETAP diaktifkan (pengajuan tetap tersinkron antar
+     perangkat!), sementara daftar fasilitas memakai data awal lokal
+     (data/facilities.json) sebagai tampilan sementara. Admin panel
+     menampilkan banner "Unggah data awal" (fbStatus().reason ===
+     'empty-seed') agar pengelola tinggal satu klik mengisi server.
+     Tanpa ini, aplikasi jatuh ke mode lokal → pengajuan tersimpan
+     per-browser → dashboard admin tampak kosong. */
   async function tryFirebase() {
     if (!fbBase()) {
       FBSTAT = { reachable: false, reason: 'no-config', message: '' };
@@ -241,11 +250,6 @@ window.CFB = window.CFB || {};
       };
       return false;
     }
-    if (!facMap || typeof facMap !== 'object') {
-      // Terhubung tapi belum ada isinya → pakai mode lokal sampai di-seed
-      FBSTAT = { reachable: true, reason: 'empty', message: '' };
-      return false;
-    }
     let avail = null, bkMap = null;
     try {
       const pair = await Promise.all([fbGet('availability'), fbGet('bookings')]);
@@ -254,12 +258,23 @@ window.CFB = window.CFB || {};
       FBSTAT = { reachable: false, reason: 'unreachable', message: e.message || '' };
       return false;
     }
-    FACILITIES = mapToFacilities(facMap);
-    AVAIL = normalizeAvail(avail);
+    const seedFallback = !facMap || typeof facMap !== 'object' || !Object.keys(facMap).length;
+    FACILITIES = seedFallback
+      ? SEED.map(f => Object.assign({}, f))          // tampilan sementara dari seed lokal
+      : mapToFacilities(facMap);
+    AVAIL = (avail && typeof avail === 'object' && Object.keys(avail).length)
+      ? normalizeAvail(avail)
+      : SEED_AVAIL;                                  // availability kosong → kebijakan seed
     BOOKINGS = bookingMapToList(bkMap);
     MODE = 'firebase';
-    FBSTAT = { reachable: true, reason: 'ok', message: '' };
+    FBSTAT = { reachable: true, reason: seedFallback ? 'empty-seed' : 'ok', message: '' };
     return true;
+  }
+
+  /* Apakah server Firebase aktif tapi belum berisi data fasilitas?
+     (dipakai banner admin: tawarkan unggah data awal sekali klik) */
+  function needsSeed() {
+    return MODE === 'firebase' && FBSTAT.reason === 'empty-seed';
   }
 
   function applyLocalMode() {
@@ -940,7 +955,7 @@ window.CFB = window.CFB || {};
     generateBookingId, getClientId,
     getKeys, getKeysByFacility, saveKey, deleteKey, keyBorrowedMap, loadKeys, refreshKeys,
     validateScanTarget, parseProofPayload, checkinByScan, checkoutBooking, todayISO, slotEnded,
-    getMode, fbStatus, seedFirebase,
+    getMode, fbStatus, seedFirebase, needsSeed,
     fbNodeGet, fbNodePut
   };
 })();

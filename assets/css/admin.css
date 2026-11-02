@@ -3,25 +3,90 @@
    Halaman: admin.html (gate, admin, pengguna, pengajuan, fasilitas)
    ============================================ */
 
-/* ===== Gate (login) ===== */
+/* ===== Gate (login) — split-screen profesional =====
+   Kiri : panel brand navy (nilai produk, dekorasi halus).
+   Kanan: kolom formulir putih, bersih, tanpa kartu. */
 .gate-screen {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  padding: 24px; background: var(--bg-soft);
+  min-height: 100vh; min-height: 100dvh;
+  display: grid; grid-template-columns: minmax(400px, 46%) minmax(0, 1fr);
+  background: #fff;
 }
-.gate-card {
-  background: #fff; border: 1px solid var(--line); border-radius: 14px;
-  padding: 36px 34px 30px; width: min(430px, 100%);
-  box-shadow: var(--shadow-md);
-  animation: scaleIn .38s var(--ease-bounce) both;
+
+/* --- Panel kiri: brand --- */
+.gate-aside {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 46px 52px 38px;
+  background: linear-gradient(168deg, #16255C 0%, #1E3A8A 54%, #2B4BA6 100%);
+  color: #fff;
 }
-.gate-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); margin-bottom: 22px; }
-.gate-brand .brand-mark { color: var(--accent); }
-.gate-brand small { font-weight: 500; color: var(--ink-3); font-size: 12px; margin-left: auto; }
-.gate-card h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 8px; }
-.gate-card .gate-sub { font-size: 14px; color: var(--ink-3); margin: 0 0 22px; line-height: 1.6; }
-.gate-form { border-top: 1px solid var(--line); padding-top: 22px; }
-.gate-form .btn-primary { width: 100%; margin-top: 4px; }
-.gate-hint { margin: 18px 0 0; font-size: 12.5px; color: var(--ink-3); text-align: center; line-height: 1.7; }
+.ga-glow { position: absolute; border-radius: 50%; pointer-events: none; }
+.ga-glow-1 {
+  width: 480px; height: 480px; right: -170px; top: -170px;
+  background: radial-gradient(circle, rgba(96, 165, 250, .26) 0%, rgba(96, 165, 250, 0) 68%);
+}
+.ga-glow-2 {
+  width: 420px; height: 420px; left: -150px; bottom: -150px;
+  background: radial-gradient(circle, rgba(255, 255, 255, .09) 0%, rgba(255, 255, 255, 0) 70%);
+}
+.gate-aside::after {
+  /* grid titik halus, memudar ke bawah */
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, .12) 1px, transparent 1.4px);
+  background-size: 24px 24px;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, .5), transparent 60%);
+          mask-image: linear-gradient(180deg, rgba(0, 0, 0, .5), transparent 60%);
+}
+.ga-inner { position: relative; z-index: 1; display: flex; flex-direction: column; flex: 1; }
+.ga-brand { display: flex; align-items: center; gap: 11px; }
+.ga-brand .brand-mark { color: #fff; }
+.ga-word { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+.ga-badge {
+  margin-left: auto; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255, 255, 255, .92);
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .10);
+  padding: 5px 11px; border-radius: 999px;
+}
+.ga-body { margin: auto 0; padding: 42px 0; max-width: 400px; }
+.ga-body h2 {
+  font-size: 30px; line-height: 1.22; font-weight: 700;
+  letter-spacing: -.022em; margin: 0 0 14px; color: #fff;
+}
+.ga-body > p { font-size: 14.5px; line-height: 1.7; color: rgba(255, 255, 255, .72); margin: 0 0 30px; }
+.ga-points { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+.ga-points li { display: flex; align-items: flex-start; gap: 13px; }
+.gp-ico {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .16);
+  color: #fff;
+}
+.gp-txt { display: flex; flex-direction: column; gap: 2px; padding-top: 1px; }
+.gp-txt strong { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
+.gp-txt small { font-size: 12.5px; line-height: 1.55; color: rgba(255, 255, 255, .62); }
+.ga-foot { margin: 0; font-size: 12px; color: rgba(255, 255, 255, .45); }
+
+/* --- Panel kanan: formulir --- */
+.gate-panel {
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px 28px; background: #fff;
+}
+.gate-card { width: min(392px, 100%); animation: fadeUp .45s var(--ease) both; }
+.gate-mbrand {
+  display: none; align-items: center; gap: 10px;
+  margin-bottom: 30px; color: var(--ink); font-weight: 700; font-size: 16px;
+}
+.gate-mbrand .brand-mark { color: var(--accent); }
+.gate-mbrand small {
+  margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-4);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px;
+}
+.gate-card h1 { font-size: 25px; font-weight: 700; letter-spacing: -.022em; margin: 0 0 8px; }
+.gate-card .gate-sub { font-size: 14px; color: var(--ink-3); margin: 0 0 24px; line-height: 1.6; }
+.gate-hint { margin: 22px 0 0; font-size: 12.5px; color: var(--ink-3); text-align: center; line-height: 1.7; }
 
 /* ===== Shell: sidebar + main ===== */
 .admin-shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
@@ -250,18 +315,65 @@
 @media (max-width: 860px) {
   .admin-shell { grid-template-columns: minmax(0, 1fr); }
   .admin-side, .admin-main { min-width: 0; }
-  .admin-side { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 10px; border-right: none; border-bottom: 1px solid var(--line); padding: 12px 16px; }
+  .admin-side { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 10px; border-right: none; border-bottom: 1px solid var(--line); padding: 12px 14px; }
   .side-brand { border: none; padding: 0 8px 0 0; margin: 0; }
   .side-brand small { display: none; }
   .side-clock { display: none; }   /* layar sempit: hemat ruang */
-  .side-nav { flex-direction: row; flex: 1; min-width: 0; overflow-x: auto; }
+  .side-nav { flex-direction: row; flex: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
   .side-nav a { padding: 8px 11px; font-size: 13px; white-space: nowrap; }
+  .side-nav .nav-group-label { display: none; }   /* label grup tidak muat di bar horizontal */
   .side-foot { margin: 0 0 0 auto; padding: 0; border: none; flex-direction: row; align-items: center; }
   .side-foot .btn-ghost { padding: 7px 11px; font-size: 12.5px; }
-  .admin-main { padding: 26px 18px 60px; }
+  .admin-main { padding: 22px 16px 56px; }
+
+  /* Judul & lede lebih ringkas */
+  .page-head h1 { font-size: 22px; }
+  .page-head .lede { font-size: 13.5px; }
+
+  /* KPI: grid 2 kolom rapi (bukan satu baris panjang) */
+  .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 10px; padding-bottom: 20px; margin-bottom: 26px; }
+  .stat-item { min-width: 0; padding: 0; border-left: none; }
+  .stat-item .si-value { font-size: 24px; }
+
+  /* Grafik ditumpuk satu kolom */
+  .chart-grid { grid-template-columns: 1fr; gap: 26px; }
+  .donut { width: 120px; height: 120px; }
+  .donut-wrap { gap: 20px; }
+
+  /* Bar horizontal: kolom nama lebih sempit */
+  .hbar-row { grid-template-columns: minmax(64px, 96px) 1fr 26px; gap: 8px; }
+  .hbar-name { font-size: 12px; }
+
+  /* Diagram batang tanggal: rapat + label kecil */
+  .vbar-chart { gap: 5px; }
+  .vbar-bar { max-width: 26px; }
+  .vbar-label { font-size: 9.5px; }
+
+  /* Pengajuan terbaru: badge turun ke bawah */
+  .recent-row { grid-template-columns: 1fr; gap: 4px; }
+  .recent-side { justify-content: flex-start; }
+
+  /* Baris pengajuan: info dan aksi ditumpuk */
+  .bk-row { grid-template-columns: 1fr; gap: 10px; padding: 14px 4px; }
+  .bk-side { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .bk-actions { flex-wrap: wrap; }
+
+  /* Toolbar: select & pencarian fleksibel */
+  .admin-toolbar { gap: 10px; }
+  .admin-toolbar select { min-width: 130px; flex: 1 1 auto; }
   .admin-toolbar .search-wrap { flex-basis: 100%; max-width: none; }
-  .bk-side { flex-direction: column; align-items: flex-end; }
+
+  /* Editor denah satu kolom */
   .detail-grid { grid-template-columns: 1fr; }
+  .le-editor { grid-template-columns: 1fr; }
+  .le-canvas-wrap { position: static; }
+
+  /* Gate: tombol aksi layar ditolak mengikuti lebar */
+  .gd-actions { flex-direction: column; gap: 10px; }
+  .gd-actions .btn-primary { width: 100%; }
+
+  /* Banner penyimpanan: tombol mengikuti lebar */
+  .storage-banner .sb-act { width: 100%; justify-content: center; }
 }
 
 /* ============================================
@@ -320,18 +432,23 @@
 .le-canvas.dragging .fp-seat { cursor: grabbing; }
 #le-mode { width: 100%; }
 
-@media (max-width: 860px) {
-  .le-editor { grid-template-columns: 1fr; }
-  .le-canvas-wrap { position: static; }
-}
-
 /* ============================================
-   GATE ADMIN — login email + kata sandi (RBAC)
+   GATE ADMIN — formulir (Google + email + kata sandi, RBAC)
    ============================================ */
-.gate-form .form-row { margin-bottom: 10px; }
-.gate-form .field-error { margin: 6px 0 10px; }
+.gate-form .form-row { margin-bottom: 14px; }
+.gate-form .form-row label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.gate-form .form-row input { padding: 11px 13px; border-radius: 10px; font-size: 14.5px; }
+.gate-form .form-row input:focus { box-shadow: 0 0 0 3.5px var(--accent-soft); }
+.gate-form .btn-primary { width: 100%; margin-top: 6px; padding: 12px 14px; font-size: 14.5px; border-radius: 10px; }
+/* Pesan galat pada gate memakai atribut hidden (bukan class has-error)
+   — tampilkan secara eksplisit sebagai kotak peringatan. */
+#gateError:not([hidden]) {
+  display: block; margin: 2px 0 14px; padding: 9px 12px;
+  background: var(--danger-soft); border: 1px solid #FECACA;
+  border-radius: 9px; font-size: 12.5px; line-height: 1.55; color: var(--danger);
+}
 .gate-switch {
-  display: block; width: 100%; margin-top: 14px;
+  display: block; width: 100%; margin-top: 16px;
   background: none; border: none; padding: 2px;
   font-size: 13px; color: var(--ink-3); text-align: center; cursor: pointer;
 }
@@ -343,19 +460,33 @@
 }
 #gateDenied h1 { color: #B91C1C; }
 .gd-icon {
-  width: 52px; height: 52px; border-radius: 14px; margin-bottom: 10px;
+  width: 52px; height: 52px; border-radius: 14px; margin-bottom: 14px;
   display: flex; align-items: center; justify-content: center;
   background: var(--danger-soft); color: var(--danger);
 }
 .gd-how {
-  text-align: left; background: var(--bg-soft); border: 1px dashed var(--line);
-  border-radius: 10px; padding: 12px 14px; margin: 14px 0;
+  text-align: left; background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; margin: 16px 0;
   font-size: 12.5px; color: var(--ink-3); line-height: 1.6;
 }
 .gd-how ol { margin: 6px 0 0; padding-left: 18px; }
 .gd-how li { margin-bottom: 4px; }
 .gd-actions { display: flex; align-items: center; gap: 14px; justify-content: center; }
 .gd-actions a { font-size: 12.5px; color: var(--ink-3); }
+
+/* Responsif gate: panel brand disembunyikan di layar sempit,
+   brand ringkas pada kolom formulir menggantikannya. */
+@media (max-width: 980px) {
+  .gate-screen { grid-template-columns: 1fr; }
+  .gate-aside { display: none; }
+  .gate-mbrand { display: flex; }
+  .gate-panel { padding: 44px 24px; }
+}
+@media (max-width: 480px) {
+  .gate-panel { padding: 36px 20px; }
+  .gate-card h1 { font-size: 22px; }
+  .gate-mbrand { margin-bottom: 24px; }
+}
 /* ===== Akun admin aktif (kaki sidebar) — datar, tanpa avatar:
      cukup nama & email, bersih dan profesional. ===== */
 .who-card {
@@ -450,6 +581,8 @@
   .list-head { display: none; }
   .adm-badge { margin-left: 0; }
   .adm-row .acc-email { min-width: 0; flex: 1 1 auto; }
+  /* Ekspor laporan: tombol ikut baris toolbar */
+  .export-wrap { flex: 1 1 auto; }
 }
 
 /* ============================================
@@ -510,6 +643,32 @@ body.role-petugas .side-nav .admin-only { display: none; }
   font-size: 13px; line-height: 1.65; margin: 0 0 16px;
 }
 .ro-banner svg { flex-shrink: 0; margin-top: 1px; }
+
+/* ===== Banner status penyimpanan (seed / koneksi database) ===== */
+.storage-banner {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  border-radius: 11px; padding: 12px 16px; margin: 0 0 22px;
+  font-size: 13px; line-height: 1.6;
+}
+.storage-banner svg { flex-shrink: 0; }
+.storage-banner .sb-body { flex: 1; min-width: 220px; }
+.storage-banner .sb-body p { margin: 0; }
+.storage-banner .sb-act { flex-shrink: 0; padding: 8px 14px; }
+.storage-banner.sb-seed { background: var(--warning-soft); border: 1px solid #FDE68A; color: #92400E; }
+.storage-banner.sb-seed svg { color: var(--warning-2); }
+.storage-banner.sb-local { background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink-2); }
+.storage-banner.sb-local svg { color: var(--ink-3); }
+.storage-banner code { font-size: .9em; }
+
+/* Catatan konfigurasi login pada gate (login belum diaktifkan) */
+.gate-cfg-note {
+  margin: 16px 0 0; padding: 11px 13px;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: 10px; font-size: 12px; color: var(--ink-3); line-height: 1.65;
+}
+.gate-cfg-note code { font-size: 11px; }
+#gateLogin .btn-google { padding: 11.5px 14px; border-radius: 10px; font-size: 14px; }
+#gateLogin .am-divider { margin: 18px 0; font-size: 11.5px; }
 
 /* ===== Tab Scanner ===== */
 .scanner-grid {
@@ -607,4 +766,53 @@ body.role-petugas .side-nav .admin-only { display: none; }
 /* Responsif scanner */
 @media (max-width: 1020px) {
   .scanner-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== Ponsel (≤640px) — perbaikan detail ===== */
+@media (max-width: 640px) {
+  /* Sidebar atas: hemat ruang — tautan keluar situs disembunyikan,
+     identitas (email) dipersingkat */
+  .admin-side { padding: 10px 12px; }
+  .side-foot a[target="_blank"] { display: none; }
+  .who-card { max-width: 140px; padding: 2px 6px 8px; }
+  .side-nav a { padding: 8px 9px; font-size: 12.5px; gap: 7px; }
+
+  .admin-main { padding: 18px 12px 48px; }
+  .page-head h1 { font-size: 20px; }
+  .stat-row { gap: 12px 8px; }
+  .stat-item .si-value { font-size: 21px; }
+  .stat-item .si-label { font-size: 10.5px; }
+
+  /* Toolbar pengajuan: elemen memenuhi lebar */
+  .admin-toolbar select,
+  .admin-toolbar .search-wrap { flex: 1 1 100%; }
+  .export-wrap { flex: 1 1 100%; }
+  .export-wrap #expBtn { width: 100%; }
+
+  /* Modal: hampir penuh + padding hemat */
+  .modal-overlay { padding: 12px; }
+  .modal-card { max-width: 100% !important; max-height: calc(100dvh - 24px); padding: 20px 16px 16px; }
+  .modal-card.modal-wide { max-width: 100% !important; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn-primary, .modal-actions .btn-ghost { width: 100%; }
+
+  /* Tabel fasilitas: gulir horizontal mulus */
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+  .admin-table td, .admin-table th { padding: 10px 9px; font-size: 12.5px; }
+
+  /* Scanner: padding hemat + kode manual cukup ruang */
+  .scanner-panel, .queue-panel { padding: 13px; }
+  .manual-row input { font-size: 14px; letter-spacing: .16em; }
+  .cam-actions .btn-primary { width: 100%; }
+
+  /* Gate */
+  .gate-panel { padding: 36px 20px; }
+  .gate-card h1 { font-size: 22px; }
+
+  /* Daftar admin/petugas & pengguna */
+  .adm-row, .acc-row { padding: 11px 2px; }
+  .adm-badge { font-size: 10px; padding: 3px 9px; }
+
+  /* Toast tidak menutupi layar */
+  .toast-stack { top: 10px; right: 10px; width: calc(100vw - 20px); }
 }

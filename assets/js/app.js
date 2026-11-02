@@ -1430,6 +1430,15 @@
     updateBookingBadge();
     const u = (CFB.auth && CFB.auth.getUser) ? CFB.auth.getUser() : null;
     const hash = location.hash.slice(1) || '/';
+    /* Login baru saja berhasil & data sebelumnya ditolak Rules (mis.
+       Rules menuntut auth != null) → muat ulang data kini dengan token,
+       lalu tampilkan ulang halaman aktif dengan data yang benar. */
+    if (u) {
+      const st = CFB.data.fbStatus();
+      if (st.base && st.reason === 'denied' && CFB.data.getMode() !== 'firebase') {
+        CFB.data.load().catch(() => {}).then(() => { updateBookingBadge(); handleHashChange(); });
+      }
+    }
     if (u && CFB.profile && CFB.profile.pull) CFB.profile.pull(); // sinkron lintas perangkat (best-effort)
     if (u && wantIdentRedirect) {
       wantIdentRedirect = false;                                  // hanya pada login yang BARU dilakukan

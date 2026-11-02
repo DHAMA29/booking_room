@@ -133,6 +133,18 @@ URL: `https://<username>.github.io/campus-facility-booking/`
 
 Aplikasi dari GitHub Pages akan langsung tersambung ke Firebase (HTTPS → tidak ada masalah CORS seperti `file://`).
 
+### Checklist setelah hosting (login & data)
+
+Setelah situs online, jalankan urutan ini agar **login Google/email** dan **data pengajuan** berfungsi:
+
+1. **Login masih mati / pesan "belum dikonfigurasi"?** → Isi `apiKey` + `authDomain` pada `assets/js/firebase-config.js` (lihat bagian **Bonus** di bawah).
+2. **Login email gagal?** → Aktifkan **Email/Password** pada Authentication → Sign-in method.
+3. **Login Google gagal / `auth/unauthorized-domain`?** → Tambahkan **domain hosting** Anda ke Authentication → Settings → **Authorized domains** (mis. `<username>.github.io`). Tanpa langkah ini tombol Google SELALU gagal — domain `localhost` saja tidak cukup.
+4. **Dashboard/Pengajuan admin kosong?** → Lihat **banner status** di bagian atas Admin Panel:
+   - banner kuning *"Unggah data awal"* → database aktif tapi belum di-seed → klik tombolnya (satu klik), atau import `firebase-seed.json` lewat Console (Langkah 3).
+   - banner abu *"Mode lokal"* → Firebase tidak terjangkau/ditolak Rules → perbaiki Rules (Langkah 2) lalu muat ulang.
+5. **Admin lain tidak bisa masuk?** → Pastikan menambahkan emailnya lewat tab **Admin & Akun** saat panel tersambung (banner abu = tidak tersambung; penambahan admin hanya tersimpan permanen saat database aktif).
+
 ---
 
 ## Troubleshooting
@@ -140,7 +152,11 @@ Aplikasi dari GitHub Pages akan langsung tersambung ke Firebase (HTTPS → tidak
 | Gejala | Penyebab | Solusi |
 |---|---|---|
 | Badge tetap kuning "Mode Lokal" | Rules masih default / belum dipublish | Ulangi Langkah 2 |
-| Toast "Firebase masih kosong" | Database aktif tapi belum di-seed | Lakukan Langkah 3 |
+| Banner abu "Mode lokal — data tidak tersinkron" | Rules menolak akses / database tidak terjangkau | Pastikan rules persis Langkah 2; cek `databaseURL` |
+| Banner kuning "Unggah data awal" | Database aktif tapi belum di-seed | Klik tombolnya, atau Lakukan Langkah 3 |
+| Dashboard & daftar pengajuan kosong | Situs berjalan mode lokal (lihat banner) / memang belum ada pengajuan | Selesaikan banner status; coba ajukan satu peminjaman dari perangkat lain |
+| Login Google: `auth/unauthorized-domain` | Domain hosting belum masuk Authorized domains | Authentication → Settings → Authorized domains → tambahkan domain |
+| Login email: `auth/operation-not-allowed` / `auth/configuration-not-found` | Email/Password belum aktif / Authentication belum disiapkan | Authentication → Get started → aktifkan Email/Password |
 | Toast "akses ditolak Firebase" | Rules menolak write (`.write: false`) | Pastikan rules persis seperti Langkah 2 |
 | Toast "Tidak dapat terhubung ke Firebase" | Internet mati / databaseURL salah | Cek koneksi; bandingkan URL di console vs `firebase-config.js` |
 | Admin tab Fasilitas: panel abu-abu | Belum coba konek / tidak ada `databaseURL` | Pastikan `firebase-config.js` terisi URL |
@@ -177,5 +193,7 @@ akun di semua perangkat, dan `idToken` otomatis dilampirkan ke permintaan databa
 (mendukung Rules dengan `auth != null`).
 Panduan lengkap: README → **Firebase Auth** & **Identitas Peminjam**.
 
-> **Admin:** gunakan tombol **Daftar/Masuk** email + kata sandi pada `admin.html` —
-> tanpa Google. Pastikan Email/Password aktif pada Sign-in method.
+> **Admin:** gate `admin.html` menyediakan **Masuk dengan Google** dan **email + kata sandi**.
+> Email akun Google harus sama dengan email yang terdaftar sebagai admin/petugas.
+> Pastikan **Google** dan **Email/Password** aktif pada Sign-in method, dan domain hosting
+> sudah masuk **Authorized domains**.

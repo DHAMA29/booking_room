@@ -17,11 +17,19 @@ GitHub Pages (statis)  ──fetch REST──▶  Firebase Realtime Database
                                           ├── bookings      (pengajuan semua pengguna + status + uid)
                                           └── users         (profil dasar akun yang login — opsional)
 
-Fallback (otomatis bila Firebase tidak aktif):
+Fallback (otomatis bila Firebase tidak terjangkau / ditolak Rules):
 data/*.json (seed) + LocalStorage (cfb_bookings, cfb_facility_overrides)
 ```
 
 Akses ke Firebase memakai **REST API Realtime Database** (`GET/PUT/PATCH/POST/DELETE <databaseURL>/<path>.json`) — cukup `databaseURL` pada `assets/js/firebase-config.js`, **tanpa apiKey & tanpa SDK**.
+
+### Pemilihan mode saat dimuat
+
+| Kondisi node `facilities` | Mode | Perilaku |
+|---|---|---|
+| Terisi | **Firebase** | Semua data dari server (tersinkron lintas perangkat) |
+| **Kosong** (belum di-seed) | **Firebase** + seed lokal | **Pengajuan tetap tersinkron**; daftar fasilitas memakai `data/facilities.json` sementara. Admin Panel menampilkan banner kuning **"Unggah data awal"** — satu klik menyimpan seed ke server. |
+| Tidak terjangkau / ditolak Rules | Lokal | `data/*.json` + LocalStorage per-perangkat; Admin Panel menampilkan banner abu berisi penyebab. Setelah **login**, bila penolakan karena Rules `auth != null`, data dimuat ulang otomatis dengan token. |
 
 ## Struktur Proyek
 
@@ -151,11 +159,13 @@ Tombol **Reset ke data awal** di tab Fasilitas: mode Firebase = menimpa node `fa
        "availability":   { ".read": true, ".write": true },
        "bookings":       { ".read": true, ".write": true },
        "users":          { ".read": true, ".write": true },
-       "admins":         { ".read": true, ".write": true }
+       "admins":         { ".read": true, ".write": true },
+       "petugas":        { ".read": true, ".write": true },
+       "keys":           { ".read": true, ".write": true }
      }
    }
    ```
-   > Node `users` menyimpan identitas peminjam (auto-isi formulir, lintas perangkat) dan `admins` daftar email admin. Bila Rules untuk node ini belum dipublish, aplikasi **tetap berjalan** — fitur terkait otomatis jatuh ke penyimpanan lokal peramban.
+   > Node `users` menyimpan identitas peminjam (auto-isi formulir, lintas perangkat), `admins` daftar email admin, `petugas` daftar **Petugas Lapangan** (alur QR Scanner), dan `keys` kunci fasilitas yang diserahkan di Scanner. **Bila `petugas` atau `keys` belum masuk Rules**, tombol *Tambah Petugas* pada tab *Admin* akan menampilkan *“Penyimpanan ditolak Rules — buka akses node /petugas (lihat README)”* dan pemilihan kunci di Scanner gagal. Bila Rules untuk node ini belum dipublish, aplikasi **tetap berjalan** — fitur terkait otomatis jatuh ke penyimpanan lokal peramban.
 2. **Isi data awal** — lewat Console Firebase: menu ⋮ (kanan atas) → **Import JSON** → pilih file `firebase-seed.json` dari folder proyek.
 3. **Konfigurasi** — `assets/js/firebase-config.js` sudah berisi URL database ini:
    `https://booking-room-ugm-default-rtdb.asia-southeast1.firebasedatabase.app` (project *booking-room-ugm*). Ganti bila memakai database lain.
@@ -166,6 +176,14 @@ Tombol **Reset ke data awal** di tab Fasilitas: mode Firebase = menimpa node `fa
 ## Firebase Auth — Login Google / Email (opsional)
 
 Login bersifat **opsional** — tanpa konfigurasi pun seluruh situs tetap berfungsi (tombol *Masuk* memberi tahu bahwa login belum diaktifkan).
+
+> **Hosting? Baca dulu — penyebab login gagal yang paling sering:**
+> 1. `apiKey` / `authDomain` **kosong** di `assets/js/firebase-config.js` → SEMUA login (Google & email) mati. Isi keduanya dulu.
+> 2. Metode login **belum diaktifkan** di Console (Authentication → Sign-in method) → aktifkan **Google** dan **Email/Password**.
+> 3. **Domain hosting belum di-Authorized-domains** (Authentication → Settings → Authorized domains) → tombol Google gagal dengan pesan *auth/unauthorized-domain*. Tambahkan domain tempat situs berjalan (mis. `xyz.github.io`, `xyz.netlify.app`, dsb.).
+> 4. **Menambah domain baru di Console tidak perlu unduh ulang** — cukup muat ulang situs.
+>
+> Halaman login **admin** (`admin.html`) menyediakan **Masuk dengan Google** dan **email + kata sandi**; email akun harus terdaftar sebagai admin/petugas (sama seperti login email).
 
 1. **Isi konfigurasi** — `assets/js/firebase-config.js`:
    ```js
@@ -179,7 +197,7 @@ Login bersifat **opsional** — tanpa konfigurasi pun seluruh situs tetap berfun
    - riwayat **Peminjaman Saya** mengikuti akun (terbuka juga di perangkat lain),
    - profil dasar tersimpan di node `users/{uid}` (nama, email, login terakhir).
 
->Catatan teknis: aplikasi tetap memakai REST untuk RTDB; SDK Auth hanya dimuat **dinamis dari CDN saat apiKey tersedia**, dan `idToken` otomatis dilampirkan ke setiap permintaan tulis (`?auth=<token>`) sehingga Rules yang membatasi `auth != null` tetap didukung.
+>Catatan teknis: aplikasi tetap memakai REST untuk RTDB; SDK Auth hanya dimuat **dinamis dari CDN saat apiKey tersedia**, dan `idToken` otomatis dilampirkan ke setiap permintaan tulis (`?auth=<token>`) sehingga Rules yang membatasi `auth != null` tetap didukung. Bila data awalnya ditolak Rules karena belum login, aplikasi **memuat ulang data otomatis setelah login berhasil**.
 
 ## Identitas Peminjam — Auto-isi Formulir (per email akun)
 

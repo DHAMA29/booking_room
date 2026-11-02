@@ -320,7 +320,9 @@
   .brand-name { font-size: 14px; }
   .main-nav { gap: 12px 16px; width: 100%; flex-wrap: wrap; row-gap: 8px; }
   .main-nav a { font-size: 13px; }
-  .main-nav a.active::after { bottom: -8px; }
+  /* Garis bawah item aktif tidak akurat saat nav membungkus — sembunyikan */
+  .main-nav a.active::after { display: none; }
+  .main-nav a.active { color: var(--accent); font-weight: 600; }
   .lang-toggle { order: 10; margin-left: auto; }
   #authArea { order: 11; }
   .facility-side { flex-direction: row; justify-content: space-between; align-items: center; grid-column: 1 / -1; }
@@ -331,15 +333,29 @@
   .success-hero { padding: 20px; gap: 14px; }
   .filter-wrap select { min-width: 0; flex: 1; }
   .toolbar { gap: 8px; }
+  /* Pencarian memenuhi satu baris penuh agar mudah dijangkau jempol */
+  .toolbar .search-wrap { flex: 1 1 100%; min-width: 0; }
   .date-chips { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+  .date-chip .dc-date { font-size: 18px; }
+  .time-slots { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
   .dp-options { flex-direction: column; }
   .dp-opt { max-width: none; }
-  .bi-grid { grid-template-columns: 1fr 1fr; }
+  .bi-grid { grid-template-columns: 1fr 1fr; gap: 12px 14px; }
   .toast-stack { top: 10px; right: 10px; width: calc(100vw - 20px); }
   .form-actions { flex-direction: column-reverse; }
   .form-actions .btn-primary, .form-actions .btn-ghost { width: 100%; }
   .modal-actions { flex-direction: column-reverse; }
   .modal-actions .btn-primary, .modal-actions .btn-ghost { width: 100%; }
+  /* Kode pengambilan kunci: huruf renggang dikurangi agar 6 karakter muat */
+  .checkin-box .cb-code { font-size: 22px; letter-spacing: .22em; }
+  .checkin-box { padding: 11px 13px; }
+  /* Nomor referensi panjang tidak meluber */
+  .sh-ref { font-size: 12px; overflow-wrap: anywhere; }
+  .bi-ref { font-size: 11px; overflow-wrap: anywhere; }
+  /* Denah & pratinjau bukti tetap proporsional */
+  .proof-preview { padding: 8px; }
+  .suggest-card .sg-item { gap: 10px; }
+  .suggest-card .sg-link { white-space: normal; }
 }
 
 /* ===== Denah ruangan (halaman detail) ===== */

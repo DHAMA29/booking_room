@@ -31,8 +31,8 @@ window.CFB_FIREBASE = {
      Google & Email/Password, dan tambahkan domain situs
      (mis. <user>.github.io) ke Authentication → Settings →
      Authorized domains. Panduan lengkap: README → Firebase Auth. */
-apiKey: 'AIzaSyAbH7LTLqfW1LVSNSCYVWkCsJChigkh33g',
-  authDomain: 'booking-room-ugm.firebaseapp.com',
+  apiKey: '',
+  authDomain: '',
 
   /* mockAuth: true  → mode login PALSU khusus pengujian lokal
      (tanpa server Firebase). Biarkan false untuk produksi. */
@@ -78,7 +78,7 @@ apiKey: 'AIzaSyAbH7LTLqfW1LVSNSCYVWkCsJChigkh33g',
         utama menambahkan petugas baru pada tab "Admin" (bagian
         Petugas Lapangan). */
   petugasEmails: [
-    // 'petugas@gamadata.id'
+    'dhamazka2007@gmail.com'
   ],
 
   /* ===== Pengelola utama (root admin) =====

@@ -59,7 +59,11 @@
     $('#gateLogin').hidden = name !== 'login';
     $('#gateChecking').hidden = name !== 'checking';
     $('#gateDenied').hidden = name !== 'denied';
-    if (name === 'login') { gateError(''); setTimeout(() => $('#gateEmail').focus(), 80); }
+    if (name === 'login') {
+      refreshGateAuthUI();
+      gateError('');
+      setTimeout(() => $('#gateEmail').focus(), 80);
+    }
   }
 
   function gateError(msg) {
@@ -128,13 +132,23 @@
     if (!clockTimer) clockTimer = setInterval(tickClock, 1000);
   }
 
-  function enterShell(user, source, role) {
+  async function enterShell(user, source, role) {
     lastAdminUid = user.uid;
     ui.role = (role === 'petugas') ? 'petugas' : 'admin';
     $('#adminGate').hidden = true;
     $('#adminShell').hidden = false;
     document.body.classList.toggle('role-petugas', ui.role === 'petugas');
     startClock();
+
+    /* Bila data awalnya DITOLAK Rules karena menuntut login (auth != null),
+       coba ulang SEKARANG — idToken sudah tersedia setelah login dan
+       otomatis dilampirkan ke query REST oleh data.js. */
+    const st = CFB.data.fbStatus();
+    if (st.base && (st.reason === 'denied' || st.reason === 'unreachable') &&
+        CFB.data.getMode() !== 'firebase') {
+      try { await CFB.data.load(); } catch (e) { /* tetap lanjut mode lokal */ }
+    }
+
     /* Identitas akun di kaki sidebar — HANYA email + chip peran, tanpa nama
        tampilan (revisi: profil disembunyikan).
        Nama tampilan (mis. "Dhamashidqiputra2007") sengaja disembunyikan. */
@@ -174,6 +188,18 @@
         $('#gdRootEmail').textContent = root;
         contact.hidden = false;
       } else contact.hidden = true;
+    }
+    /* Bila panel berjalan mode lokal (database tidak terjangkau/ditolak),
+       sampaikan juga — penambahan admin oleh pengelola utama hanya
+       tersimpan permanen saat database online aktif. */
+    const dbNote = $('#gdDbNote');
+    if (dbNote) {
+      const st = CFB.data.fbStatus();
+      const offline = st.base && CFB.data.getMode() !== 'firebase';
+      dbNote.hidden = !offline;
+      if (offline) {
+        dbNote.innerHTML = (st.reason === 'denied') ? T('gate.denied.dbdenied') : T('gate.denied.dboff');
+      }
     }
     gateState('denied');
   }
@@ -223,7 +249,8 @@
   async function doGateLogin(fn, btn) {
     gateError('');
     if (!CFB.auth || !CFB.auth.available()) {
-      gateError('Login belum dikonfigurasi — isi apiKey & authDomain pada assets/js/firebase-config.js.');
+      gateError(T('gate.unconfigured'));
+      showGateCfgNote();
       return;
     }
     btn.disabled = true;
@@ -231,6 +258,27 @@
     try { await fn(); }               // hasil datang via cfb:auth → handleAuthState
     catch (e) { gateError(CFB.auth.errText(e)); }
     finally { btn.disabled = false; btn.classList.remove('is-loading'); }
+  }
+
+  /* Tampilkan/sembunyikan tombol Google + catatan konfigurasi pada gate.
+     Google hanya tampil bila Firebase Auth dikonfigurasi (apiKey terisi);
+     bila belum, catatan langkah singkat ditampilkan agar pengelola tahu
+     apa yang harus diisi (bukan sekadar "login gagal"). */
+  function refreshGateAuthUI() {
+    const gBtn = $('#gateGoogle'), div = $('#gateDivider'), note = $('#gateCfgNote');
+    const hasAuth = !!(CFB.auth && CFB.auth.available());
+    if (gBtn) gBtn.hidden = !hasAuth;
+    if (div) div.hidden = !hasAuth;
+    if (note) {
+      if (!hasAuth) showGateCfgNote();
+      else { note.hidden = true; note.textContent = ''; }
+    }
+  }
+  function showGateCfgNote() {
+    const note = $('#gateCfgNote');
+    if (!note) return;
+    note.innerHTML = T('gate.cfgnote');
+    note.hidden = false;
   }
 
   // ============ Tab (via hash) — daftar tab mengikuti peran ============
@@ -284,6 +332,7 @@
     if (ui.tab === 'users') await renderUsersTab();
     if (ui.tab === 'pengajuan') renderBookings();
     if (ui.tab === 'fasilitas') renderFacilities();
+    renderStorageBanner();
     updatePendingBadge();
   }
 
@@ -291,6 +340,63 @@
     const n = CFB.data.getBookings().filter(b => b.status === 'Pending').length;
     const el = $('#pendingBadge');
     if (n > 0) { el.textContent = n; el.hidden = false; } else el.hidden = true;
+  }
+
+  /* ===== Banner status penyimpanan =====
+     Membuat kondisi data selalu transparan bagi pengelola:
+     1. Firebase aktif tapi belum berisi data fasilitas (empty-seed)
+        → banner kuning + tombol "Unggah data awal" (sekali klik,
+          menulis data/facilities.json + availability ke server).
+     2. Mode lokal karena Firebase tidak terjangkau / ditolak Rules
+        → banner abu dengan penjelasan singkat + langkah perbaikan.
+     Pengajuan yang dikirim mahasiswa pada kondisi 2 TIDAK tersinkron
+     antar perangkat — banner menjelaskannya secara eksplisit. */
+  function renderStorageBanner() {
+    const el = $('#storageBanner');
+    if (!el) return;
+    const st = CFB.data.fbStatus();
+    const mode = CFB.data.getMode();
+    el.className = 'storage-banner';
+    el.innerHTML = '';
+
+    if (mode === 'firebase') {
+      if (CFB.data.needsSeed()) {
+        el.classList.add('sb-seed');
+        el.innerHTML =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>' +
+          '<div class="sb-body"><p>' + T('sb.seed.msg') + '</p></div>' +
+          (isPetugas() ? '' : '<button type="button" class="btn-mini ok sb-act" id="sbSeedBtn">' + T('sb.seed.btn') + '</button>');
+        el.hidden = false;
+        const btn = $('#sbSeedBtn');
+        if (btn) btn.addEventListener('click', uploadSeedFromBanner);
+      } else {
+        el.hidden = true;
+      }
+      return;
+    }
+
+    /* Mode lokal — sebut penyebabnya (bila databaseURL diisi) */
+    if (!st.base) { el.hidden = true; return; }
+    const reasonKey = (st.reason === 'denied') ? 'sb.local.denied' : 'sb.local.unreachable';
+    el.classList.add('sb-local');
+    el.innerHTML =
+      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>' +
+      '<div class="sb-body"><p><strong>' + T('sb.local.title') + '</strong> ' + T(reasonKey) + '</p></div>';
+    el.hidden = false;
+  }
+
+  /* Unggah data awal ke Firebase dari banner (root/admin saja) */
+  async function uploadSeedFromBanner() {
+    const btn = $('#sbSeedBtn');
+    if (btn) { btn.disabled = true; btn.classList.add('is-loading'); }
+    const res = await CFB.data.seedFirebase();
+    if (btn) { btn.disabled = false; btn.classList.remove('is-loading'); }
+    if (res.ok) {
+      CFB.notify.success(T('sb.seed.done.t'), T('sb.seed.done.m', { n: res.facilities }));
+      await renderTab();
+    } else {
+      CFB.notify.error(T('sb.seed.fail.t'), res.error || T('sb.seed.fail.m'));
+    }
   }
 
   // ============ Dashboard / Analitik (dikembalikan seperti semula) ============
@@ -2342,6 +2448,13 @@
     });
     $('#gateEmail').addEventListener('input', () => gateError(''));
     $('#gatePass').addEventListener('input', () => gateError(''));
+
+    /* Login Google pada gate admin — email akun Google harus terdaftar
+       sebagai admin/petugas (sama seperti login email). */
+    const gateGoogleBtn = $('#gateGoogle');
+    if (gateGoogleBtn) gateGoogleBtn.addEventListener('click', () =>
+      doGateLogin(() => CFB.auth.signInGoogle(), gateGoogleBtn));
+
     $('#gdRetry').addEventListener('click', () => location.reload());
 
     $('#logoutBtn').addEventListener('click', async () => {
