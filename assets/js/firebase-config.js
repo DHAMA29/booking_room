@@ -18,7 +18,8 @@
 window.CFB_FIREBASE = {
   // Project  : booking-room-ugm
   // Region   : asia-southeast1
-  databaseURL: 'https://booking-room-ugm-default-rtdb.asia-southeast1.firebasedatabase.app',
+  databaseURL:
+    "https://booking-room-ugm-default-rtdb.asia-southeast1.firebasedatabase.app",
 
   /* ===== Firebase Auth (login Google / email) — OPSIONAL =====
      Isi dua baris di bawah untuk mengaktifkan tombol "Masuk".
@@ -31,8 +32,8 @@ window.CFB_FIREBASE = {
      Google & Email/Password, dan tambahkan domain situs
      (mis. <user>.github.io) ke Authentication → Settings →
      Authorized domains. Panduan lengkap: README → Firebase Auth. */
-  apiKey: '',
-  authDomain: '',
+  apiKey: "AIzaSyAbH7LTLqfW1LVSNSCYVWkCsJChigkh33g",
+  authDomain: "booking-room-ugm.firebaseapp.com",
 
   /* mockAuth: true  → mode login PALSU khusus pengujian lokal
      (tanpa server Firebase). Biarkan false untuk produksi. */
@@ -77,9 +78,7 @@ window.CFB_FIREBASE = {
      2. Node /petugas di Realtime Database — diisi ketika pengelola
         utama menambahkan petugas baru pada tab "Admin" (bagian
         Petugas Lapangan). */
-  petugasEmails: [
-    'dhamazka2007@gmail.com'
-  ],
+  petugasEmails: ["dhamazka2007@gmail.com"],
 
   /* ===== Pengelola utama (root admin) =====
      Satu-satunya akun yang dapat MENAMBAHKAN admin baru pada tab
@@ -87,7 +86,7 @@ window.CFB_FIREBASE = {
      Admin lain tetap dapat melihat daftar admin dan tombol
      Tambah Admin, namun akan menerima notifikasi "Akses Ditolak"
      bila menekannya. */
-  rootAdminEmail: 'dhamashidqiputra2007@mail.ugm.ac.id'
+  rootAdminEmail: "dhamashidqiputra2007@mail.ugm.ac.id",
 };
 
 /* Struktur data di Realtime Database:
