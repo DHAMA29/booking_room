@@ -1269,6 +1269,7 @@
     listEl.innerHTML = rows.map(a => {
       const when = a.ts ? 'Aktivitas terakhir ' + fmtDT(new Date(a.ts).toISOString()) : 'Baru terdaftar';
       return '<div class="acc-row">' +
+        '  <span class="row-ava" aria-hidden="true">' + esc(a.email.charAt(0).toUpperCase()) + '</span>' +
         '  <span class="acc-email" title="' + esc(a.email) + '">' + esc(a.email) + '</span>' +
         '  <span class="acc-when">' + esc(when) + '</span>' +
         '</div>';
@@ -1314,16 +1315,18 @@
          utama) yang dapat dihapus dari antarmuka. */
       const canRemove = ui.isRoot && !isRootRow &&
         ui.adminEmailsDb.includes(email) && !cfgAdminEmails().includes(email);
+      const delSlot = canRemove
+        ? '<button type="button" class="btn-icon danger adm-del" data-del-admin="' + esc(email) + '" title="Hapus akses admin">' + CFB.icons.trash + '</button>'
+        : '<span class="row-slot" aria-hidden="true"></span>';
       return '<div class="adm-row' + (isRootRow ? ' is-root' : '') + '">' +
+        '  <span class="row-ava' + (isRootRow ? ' root' : '') + '" aria-hidden="true">' + esc(email.charAt(0).toUpperCase()) + '</span>' +
         '  <span class="acc-email" title="' + esc(email) + '">' + esc(email) + '</span>' +
         (isRootRow
           ? '<span class="adm-badge root">' +
             '<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.26 6.6 1.04-4.75 4.37 1.22 6.7L12 17.1l-5.97 3.27 1.22-6.7L2.5 9.3l6.6-1.04L12 2z"/></svg>' +
             'Pengelola Utama</span>'
           : '<span class="adm-badge">Admin</span>') +
-        (canRemove
-          ? '<button type="button" class="btn-icon danger adm-del" data-del-admin="' + esc(email) + '" title="Hapus akses admin">' + CFB.icons.trash + '</button>'
-          : '') +
+        delSlot +
         '</div>';
     }).join('');
     if (emptyEl) emptyEl.hidden = all.length > 0;
@@ -1491,12 +1494,14 @@
          utama) yang dapat dihapus dari antarmuka. */
       const canRemove = ui.isRoot && ui.petugasEmailsDb.includes(email) &&
         !cfgPetugasEmails().includes(email);
+      const delSlot = canRemove
+        ? '<button type="button" class="btn-icon danger adm-del" data-del-ptg="' + esc(email) + '" title="Hapus akses petugas">' + CFB.icons.trash + '</button>'
+        : '<span class="row-slot" aria-hidden="true"></span>';
       return '<div class="adm-row">' +
+        '  <span class="row-ava ptg" aria-hidden="true">' + esc(email.charAt(0).toUpperCase()) + '</span>' +
         '  <span class="acc-email" title="' + esc(email) + '">' + esc(email) + '</span>' +
         '  <span class="adm-badge ptg">' + esc(T('role.petugas')) + '</span>' +
-        (canRemove
-          ? '<button type="button" class="btn-icon danger adm-del" data-del-ptg="' + esc(email) + '" title="Hapus akses petugas">' + CFB.icons.trash + '</button>'
-          : '') +
+        delSlot +
         '</div>';
     }).join('');
     if (emptyEl) emptyEl.hidden = all.length > 0;
@@ -2420,31 +2425,17 @@
 
   // ============ Bind & Init ============
   function bind() {
-    /* Gate login (RBAC) — email + kata sandi (tanpa Google) */
-    let gateMode = 'login'; // 'login' | 'register'
-    const gateSwitch = $('#gateSwitch');
+    /* Gate login (RBAC) — Google + email/kata sandi.
+       TANPA registrasi mandiri: akun admin/petugas hanya ditambahkan
+       oleh pengelola utama melalui tab Admin. */
     const gateSubmit = $('#gateSubmit');
-    gateSwitch.addEventListener('click', () => {
-      gateMode = (gateMode === 'login') ? 'register' : 'login';
-      $('#gatePass').setAttribute('autocomplete', gateMode === 'login' ? 'current-password' : 'new-password');
-      gateSubmit.textContent = gateMode === 'login' ? 'Masuk' : 'Daftar';
-      gateSwitch.innerHTML = gateMode === 'login'
-        ? 'Belum punya akun admin? <strong>Daftar</strong>'
-        : 'Sudah punya akun admin? <strong>Masuk</strong>';
-      gateError('');
-    });
     $('#gateForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const email = $('#gateEmail').value.trim();
       const pass = $('#gatePass').value;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { gateError('Masukkan alamat email yang valid.'); return; }
       if (!pass || pass.length < 6) { gateError('Kata sandi minimal 6 karakter.'); return; }
-      doGateLogin(
-        () => (gateMode === 'login'
-          ? CFB.auth.signInEmail(email, pass)
-          : CFB.auth.signUpEmail(email, pass, '')),
-        gateSubmit
-      );
+      doGateLogin(() => CFB.auth.signInEmail(email, pass), gateSubmit);
     });
     $('#gateEmail').addEventListener('input', () => gateError(''));
     $('#gatePass').addEventListener('input', () => gateError(''));

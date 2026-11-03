@@ -3,90 +3,26 @@
    Halaman: admin.html (gate, admin, pengguna, pengajuan, fasilitas)
    ============================================ */
 
-/* ===== Gate (login) — split-screen profesional =====
-   Kiri : panel brand navy (nilai produk, dekorasi halus).
-   Kanan: kolom formulir putih, bersih, tanpa kartu. */
+/* ===== Gate (login) — kartu tengah seperti desain awal =====
+   Ditambah: tombol Google + divider "atau" di atas form.
+   Tanpa registrasi mandiri (akun ditambahkan pengelola utama). */
 .gate-screen {
   min-height: 100vh; min-height: 100dvh;
-  display: grid; grid-template-columns: minmax(400px, 46%) minmax(0, 1fr);
-  background: #fff;
-}
-
-/* --- Panel kiri: brand --- */
-.gate-aside {
-  position: relative; overflow: hidden;
-  display: flex; flex-direction: column;
-  padding: 46px 52px 38px;
-  background: linear-gradient(168deg, #16255C 0%, #1E3A8A 54%, #2B4BA6 100%);
-  color: #fff;
-}
-.ga-glow { position: absolute; border-radius: 50%; pointer-events: none; }
-.ga-glow-1 {
-  width: 480px; height: 480px; right: -170px; top: -170px;
-  background: radial-gradient(circle, rgba(96, 165, 250, .26) 0%, rgba(96, 165, 250, 0) 68%);
-}
-.ga-glow-2 {
-  width: 420px; height: 420px; left: -150px; bottom: -150px;
-  background: radial-gradient(circle, rgba(255, 255, 255, .09) 0%, rgba(255, 255, 255, 0) 70%);
-}
-.gate-aside::after {
-  /* grid titik halus, memudar ke bawah */
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(rgba(255, 255, 255, .12) 1px, transparent 1.4px);
-  background-size: 24px 24px;
-  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, .5), transparent 60%);
-          mask-image: linear-gradient(180deg, rgba(0, 0, 0, .5), transparent 60%);
-}
-.ga-inner { position: relative; z-index: 1; display: flex; flex-direction: column; flex: 1; }
-.ga-brand { display: flex; align-items: center; gap: 11px; }
-.ga-brand .brand-mark { color: #fff; }
-.ga-word { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
-.ga-badge {
-  margin-left: auto; font-size: 10.5px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(255, 255, 255, .92);
-  border: 1px solid rgba(255, 255, 255, .28);
-  background: rgba(255, 255, 255, .10);
-  padding: 5px 11px; border-radius: 999px;
-}
-.ga-body { margin: auto 0; padding: 42px 0; max-width: 400px; }
-.ga-body h2 {
-  font-size: 30px; line-height: 1.22; font-weight: 700;
-  letter-spacing: -.022em; margin: 0 0 14px; color: #fff;
-}
-.ga-body > p { font-size: 14.5px; line-height: 1.7; color: rgba(255, 255, 255, .72); margin: 0 0 30px; }
-.ga-points { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
-.ga-points li { display: flex; align-items: flex-start; gap: 13px; }
-.gp-ico {
-  flex-shrink: 0; width: 38px; height: 38px; border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .16);
-  color: #fff;
+  padding: 24px; background: var(--bg-soft);
 }
-.gp-txt { display: flex; flex-direction: column; gap: 2px; padding-top: 1px; }
-.gp-txt strong { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
-.gp-txt small { font-size: 12.5px; line-height: 1.55; color: rgba(255, 255, 255, .62); }
-.ga-foot { margin: 0; font-size: 12px; color: rgba(255, 255, 255, .45); }
-
-/* --- Panel kanan: formulir --- */
-.gate-panel {
-  display: flex; align-items: center; justify-content: center;
-  padding: 48px 28px; background: #fff;
+.gate-card {
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  padding: 36px 34px 30px; width: min(430px, 100%);
+  box-shadow: var(--shadow-md);
+  animation: scaleIn .38s var(--ease-bounce) both;
 }
-.gate-card { width: min(392px, 100%); animation: fadeUp .45s var(--ease) both; }
-.gate-mbrand {
-  display: none; align-items: center; gap: 10px;
-  margin-bottom: 30px; color: var(--ink); font-weight: 700; font-size: 16px;
-}
-.gate-mbrand .brand-mark { color: var(--accent); }
-.gate-mbrand small {
-  margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--ink-4);
-  border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px;
-}
-.gate-card h1 { font-size: 25px; font-weight: 700; letter-spacing: -.022em; margin: 0 0 8px; }
-.gate-card .gate-sub { font-size: 14px; color: var(--ink-3); margin: 0 0 24px; line-height: 1.6; }
-.gate-hint { margin: 22px 0 0; font-size: 12.5px; color: var(--ink-3); text-align: center; line-height: 1.7; }
+.gate-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); margin-bottom: 22px; }
+.gate-brand .brand-mark { color: var(--accent); }
+.gate-brand small { font-weight: 500; color: var(--ink-3); font-size: 12px; margin-left: auto; }
+.gate-card h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 8px; }
+.gate-card .gate-sub { font-size: 14px; color: var(--ink-3); margin: 0 0 20px; line-height: 1.6; }
+.gate-hint { margin: 18px 0 0; font-size: 12.5px; color: var(--ink-3); text-align: center; line-height: 1.7; }
 
 /* ===== Shell: sidebar + main ===== */
 .admin-shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
@@ -315,15 +251,33 @@
 @media (max-width: 860px) {
   .admin-shell { grid-template-columns: minmax(0, 1fr); }
   .admin-side, .admin-main { min-width: 0; }
-  .admin-side { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 10px; border-right: none; border-bottom: 1px solid var(--line); padding: 12px 14px; }
-  .side-brand { border: none; padding: 0 8px 0 0; margin: 0; }
+  /* Topbar 2 baris (sticky): baris 1 = brand + akun + KELUAR,
+     baris 2 = navigasi horizontal. Logout selalu terlihat. */
+  .admin-side {
+    position: sticky; top: 0; z-index: 50; background: #fff;
+    height: auto; flex-direction: row; align-items: center; flex-wrap: wrap;
+    gap: 4px 10px; border-right: none; border-bottom: 1px solid var(--line);
+    padding: 10px 14px 0;
+  }
+  .side-brand { order: 1; border: none; padding: 0 8px 0 0; margin: 0; }
   .side-brand small { display: none; }
   .side-clock { display: none; }   /* layar sempit: hemat ruang */
-  .side-nav { flex-direction: row; flex: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .side-foot {
+    order: 2; margin: 0 0 0 auto; padding: 0; border: none;
+    flex-direction: row; align-items: center; gap: 8px;
+  }
+  .side-foot .btn-ghost { padding: 7px 11px; font-size: 12.5px; flex-shrink: 0; }
+  .side-foot a[target="_blank"] { display: none; }
+  .who-card { max-width: 42vw; padding: 2px 0 8px; }
+  .who-name { display: none; }     /* cukup email di layar sempit */
+  .side-nav {
+    order: 3; flex: 1 1 100%; min-width: 0;
+    flex-direction: row; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; border-top: 1px solid var(--line-2);
+    padding: 4px 0 6px;
+  }
   .side-nav a { padding: 8px 11px; font-size: 13px; white-space: nowrap; }
   .side-nav .nav-group-label { display: none; }   /* label grup tidak muat di bar horizontal */
-  .side-foot { margin: 0 0 0 auto; padding: 0; border: none; flex-direction: row; align-items: center; }
-  .side-foot .btn-ghost { padding: 7px 11px; font-size: 12.5px; }
   .admin-main { padding: 22px 16px 56px; }
 
   /* Judul & lede lebih ringkas */
@@ -474,18 +428,10 @@
 .gd-actions { display: flex; align-items: center; gap: 14px; justify-content: center; }
 .gd-actions a { font-size: 12.5px; color: var(--ink-3); }
 
-/* Responsif gate: panel brand disembunyikan di layar sempit,
-   brand ringkas pada kolom formulir menggantikannya. */
-@media (max-width: 980px) {
-  .gate-screen { grid-template-columns: 1fr; }
-  .gate-aside { display: none; }
-  .gate-mbrand { display: flex; }
-  .gate-panel { padding: 44px 24px; }
-}
+/* Responsif gate: kartu tetap nyaman di layar kecil */
 @media (max-width: 480px) {
-  .gate-panel { padding: 36px 20px; }
-  .gate-card h1 { font-size: 22px; }
-  .gate-mbrand { margin-bottom: 24px; }
+  .gate-screen { padding: 16px; }
+  .gate-card { padding: 28px 20px 24px; }
 }
 /* ===== Akun admin aktif (kaki sidebar) — datar, tanpa avatar:
      cukup nama & email, bersih dan profesional. ===== */
@@ -504,40 +450,61 @@
 }
 .who-card.is-root .who-name { color: #92400E; }
 
-/* ===== Tab Admin & Tab Pengguna — daftar datar (tanpa kartu, tanpa avatar) ===== */
+/* ===== Tab Admin & Tab Pengguna — daftar dalam kartu bersih =====
+   Setiap baris: inisial (avatar) + email + chip peran + aksi.
+   Kolom aksi selalu dicadangkan agar chip peran rata vertikal. */
 .list-head {
   display: flex; align-items: center; gap: 12px;
-  padding: 0 6px 9px; border-bottom: 1px solid var(--line);
+  padding: 0 16px 9px;
 }
 .lh-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-4); }
 .lh-right { margin-left: auto; }
-.acc-list, .adm-list { display: flex; flex-direction: column; }
+.acc-list, .adm-list {
+  display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.acc-list:empty, .adm-list:empty { display: none; }   /* kosong → kartu hilang, tampil empty-state */
 .acc-row, .adm-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 6px; border-bottom: 1px solid var(--line-2);
+  display: grid; grid-template-columns: 34px minmax(0, 1fr) auto 30px;
+  align-items: center; gap: 13px;
+  padding: 12px 16px; border-bottom: 1px solid var(--line-2);
   transition: background .13s;
 }
 .acc-row:last-child, .adm-row:last-child { border-bottom: none; }
 .acc-row:hover, .adm-row:hover { background: var(--bg-soft); }
+/* Avatar inisial — warna mengikuti peran */
+.row-ava {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 13px; font-weight: 700; line-height: 1;
+}
+.row-ava.root { background: #FEF3C7; color: #B45309; }
+.row-ava.ptg { background: #ECFDF5; color: #047857; }
+.row-slot { width: 30px; }   /* cadangan kolom aksi agar rata */
 .acc-email {
   font-size: 13.5px; font-weight: 600; color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
 }
-.acc-when { margin-left: auto; flex-shrink: 0; font-size: 11.5px; color: var(--ink-4); }
+.acc-when { font-size: 11.5px; color: var(--ink-4); }
 
 /* Tombol Tambah Admin (toolbar tab Admin) */
 .btn-add-admin { display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; font-size: 13px; }
 
-/* Baris admin — datar, dipisah hairline (bukan kartu) */
+/* Chip peran — warna berbeda per peran, posisi tetap (kolom 3) */
 .adm-badge {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 11px; border-radius: 999px; white-space: nowrap;
   background: var(--accent-soft); color: var(--accent);
   font-size: 11px; font-weight: 700; letter-spacing: .02em;
 }
 .adm-badge.root { background: #FEF3C7; color: #B45309; }
-.adm-row .adm-del { margin-left: 0; flex-shrink: 0; }
-.adm-row .acc-email { flex: 0 1 auto; }
+.adm-badge.ptg { background: #ECFDF5; color: #047857; }
+.adm-row .adm-del { flex-shrink: 0; }
+
+/* Pemisah bagian Admin utama vs Petugas Lapangan pada tab Admin */
+.ptg-section { margin-top: 42px; padding-top: 30px; border-top: 1px solid var(--line); }
 
 /* Modal "Akses Ditolak" (admin non-utama) */
 .ad-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -579,8 +546,6 @@
   .who-card { max-width: 210px; }
   .acc-when { display: none; }
   .list-head { display: none; }
-  .adm-badge { margin-left: 0; }
-  .adm-row .acc-email { min-width: 0; flex: 1 1 auto; }
   /* Ekspor laporan: tombol ikut baris toolbar */
   .export-wrap { flex: 1 1 auto; }
 }
@@ -806,11 +771,11 @@ body.role-petugas .side-nav .admin-only { display: none; }
   .cam-actions .btn-primary { width: 100%; }
 
   /* Gate */
-  .gate-panel { padding: 36px 20px; }
-  .gate-card h1 { font-size: 22px; }
+  .gate-card { padding: 24px 16px 20px; }
+  .gate-card h1 { font-size: 20px; }
 
   /* Daftar admin/petugas & pengguna */
-  .adm-row, .acc-row { padding: 11px 2px; }
+  .acc-row, .adm-row { padding: 12px 13px; gap: 11px; }
   .adm-badge { font-size: 10px; padding: 3px 9px; }
 
   /* Toast tidak menutupi layar */

@@ -56,7 +56,14 @@
       pages.forEach(p => { p.hidden = true; });
       next.hidden = false;
       $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === name));
+      /* Gulir ke atas secara INSTAN — bypass CSS scroll-behavior:smooth.
+         Tanpa ini, membuka detail ruangan dari posisi scroll jauh di bawah
+         membuat halaman "menyusur" ke atas dengan animasi panjang yang
+         tidak nyaman (dan bisa terpotong oleh view transition). */
+      const html = document.documentElement;
+      html.style.scrollBehavior = 'auto';
       window.scrollTo(0, 0);
+      requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
     };
 
     /* Revisi: perpindahan antar halaman memakai cross-fade + geser halus

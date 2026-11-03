@@ -12,133 +12,73 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css" />
-  <link rel="stylesheet" href="assets/css/admin.css" />
+  <link rel="stylesheet" href="assets/css/base.css?v=20261103" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20261103" />
 </head>
 <body>
 
   <!-- ============ GATE (login — RBAC) ============
-       Layout split-screen: panel brand (kiri) + formulir (kanan).
-       Pada layar sempit panel brand disembunyikan (lihat admin.css). -->
+       Kartu tengah seperti desain awal + opsi login Google.
+       TANPA registrasi mandiri: akun admin/petugas ditambahkan
+       oleh pengelola utama (tab Admin). -->
   <div id="adminGate" class="gate-screen" hidden>
-
-    <!-- Panel kiri: identitas & manfaat produk -->
-    <aside class="gate-aside">
-      <div class="ga-glow ga-glow-1" aria-hidden="true"></div>
-      <div class="ga-glow ga-glow-2" aria-hidden="true"></div>
-      <div class="ga-inner">
-        <div class="ga-brand">
-          <img class="brand-logo" src="assets/images/logo.png" alt="" onload="this.parentElement.classList.add('has-logo')" onerror="this.remove()" />
-          <svg class="brand-mark" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
-            <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-            <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-          </svg>
-          <span class="ga-word">Gamaspace</span>
-          <span class="ga-badge">Admin Panel</span>
-        </div>
-
-        <div class="ga-body">
-          <h2>Satu panel untuk<br/>seluruh ruang kampus.</h2>
-          <p>Kelola fasilitas, setujui pengajuan, dan pantau pemakaian ruang &mdash; semuanya dari satu tempat.</p>
-          <ul class="ga-points">
-            <li>
-              <span class="gp-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
-              </span>
-              <span class="gp-txt">
-                <strong>Persetujuan cepat</strong>
-                <small>Tinjau, setujui, atau tolak pengajuan dalam satu klik.</small>
-              </span>
-            </li>
-            <li>
-              <span class="gp-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M16 8h2a2 2 0 0 1 2 2v12"/><path d="M2 22h20"/><path d="M8 6h4M8 10h4M8 14h4M8 18h4"/></svg>
-              </span>
-              <span class="gp-txt">
-                <strong>Kelola fasilitas</strong>
-                <small>Ruangan, jam operasional, dan ketersediaan waktu.</small>
-              </span>
-            </li>
-            <li>
-              <span class="gp-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-              </span>
-              <span class="gp-txt">
-                <strong>Laporan siap unduh</strong>
-                <small>Rekap pemakaian fasilitas dalam format PDF dan CSV.</small>
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <p class="ga-foot">Gamaspace &middot; Sistem Peminjaman Fasilitas Kampus</p>
+    <div class="gate-card">
+      <div class="gate-brand">
+        <img class="brand-logo" src="assets/images/logo.png" alt="" onload="this.parentElement.classList.add('has-logo')" onerror="this.remove()" />
+        <svg class="brand-mark" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+        </svg>
+        <span>Gamaspace</span>
+        <small>ADMIN PANEL</small>
       </div>
-    </aside>
 
-    <!-- Panel kanan: formulir masuk -->
-    <div class="gate-panel">
-      <div class="gate-card">
-
-        <!-- Brand ringkas (hanya tampil di layar kecil) -->
-        <div class="gate-mbrand">
-          <img class="brand-logo" src="assets/images/logo.png" alt="" onload="this.parentElement.classList.add('has-logo')" onerror="this.remove()" />
-          <svg class="brand-mark" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true">
-            <path d="M4 14 L16 6 L28 14 L28 27 L4 27 Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-            <path d="M13 27 L13 19 L19 19 L19 27" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-          </svg>
-          <span>Gamaspace</span>
-          <small>Admin Panel</small>
-        </div>
-
-        <!-- State: form login (Google + email + kata sandi) -->
-        <div id="gateLogin">
-          <h1>Masuk sebagai pengelola</h1>
-          <p class="gate-sub">Gunakan akun Google atau email pengelola untuk melanjutkan.</p>
-          <button type="button" id="gateGoogle" class="btn-google" hidden>
-            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10.1-2 13.6-5.2l-6.3-5.3C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.3 5.3C40.9 35.6 44 30.3 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
-            <span data-i18n="auth.google">Masuk dengan Google</span>
-          </button>
-          <div class="am-divider" id="gateDivider" hidden><span data-i18n="auth.or">atau</span></div>
-          <form id="gateForm" class="gate-form" novalidate>
-            <div class="form-row">
-              <label for="gateEmail">Email</label>
-              <input id="gateEmail" type="email" autocomplete="email" placeholder="nama@contoh.com" />
-            </div>
-            <div class="form-row">
-              <label for="gatePass">Kata sandi</label>
-              <input id="gatePass" type="password" autocomplete="current-password" />
-            </div>
-            <p class="field-error" id="gateError" hidden></p>
-            <button type="submit" class="btn-primary" id="gateSubmit">Masuk</button>
-          </form>
-          <p class="gate-cfg-note" id="gateCfgNote" hidden></p>
-          <button type="button" id="gateSwitch" class="gate-switch">Belum punya akun admin? <strong>Daftar</strong></button>
-          <p class="gate-hint">Akses diberikan kepada akun pengelola terdaftar. <a href="fasilitas.html">&larr; Kembali ke situs pengguna</a></p>
-        </div>
-
-        <!-- State: memeriksa akun -->
-        <div id="gateChecking" hidden>
-          <div class="gate-state"><span class="btn-spinner" aria-hidden="true"></span> Memeriksa akun&hellip;</div>
-        </div>
-
-        <!-- State: akses ditolak -->
-        <div id="gateDenied" hidden>
-          <div class="gd-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      <!-- State: form login (Google + email + kata sandi) -->
+      <div id="gateLogin">
+        <h1>Masuk sebagai pengelola</h1>
+        <p class="gate-sub">Kelola fasilitas, setujui pengajuan, dan unduh laporan pemakaian.</p>
+        <button type="button" id="gateGoogle" class="btn-google" hidden>
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10.1-2 13.6-5.2l-6.3-5.3C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.3 5.3C40.9 35.6 44 30.3 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+          <span data-i18n="auth.google">Masuk dengan Google</span>
+        </button>
+        <div class="am-divider" id="gateDivider" hidden><span data-i18n="auth.or">atau</span></div>
+        <form id="gateForm" class="gate-form" novalidate>
+          <div class="form-row">
+            <label for="gateEmail">Email</label>
+            <input id="gateEmail" type="email" autocomplete="email" placeholder="nama@contoh.com" />
           </div>
-          <h1>Akses ditolak</h1>
-          <p class="gate-sub">Akun <strong id="gdEmail"></strong> belum terdaftar sebagai admin Gamaspace.</p>
-          <div class="gd-how">
-            <p id="gdHowText">Hanya <strong>pengelola utama</strong> yang dapat menambahkan admin baru. Silakan hubungi pengelola utama untuk meminta akses Admin Panel.</p>
-            <p class="gd-contact" id="gdContact" hidden><span>Pengelola utama</span> <strong id="gdRootEmail"></strong></p>
-            <p class="gd-contact" id="gdDbNote" hidden></p>
+          <div class="form-row">
+            <label for="gatePass">Kata sandi</label>
+            <input id="gatePass" type="password" autocomplete="current-password" />
           </div>
-          <div class="gd-actions">
-            <button type="button" id="gdRetry" class="btn-primary">Coba masuk lagi</button>
-            <a href="fasilitas.html">&larr; Kembali ke situs pengguna</a>
-          </div>
-        </div>
+          <p class="field-error" id="gateError" hidden></p>
+          <button type="submit" class="btn-primary" id="gateSubmit">Masuk</button>
+        </form>
+        <p class="gate-cfg-note" id="gateCfgNote" hidden></p>
+        <p class="gate-hint">Akses hanya untuk admin &amp; petugas terdaftar — akun baru ditambahkan oleh pengelola utama. <a href="fasilitas.html">&larr; Kembali ke situs pengguna</a></p>
+      </div>
 
+      <!-- State: memeriksa akun -->
+      <div id="gateChecking" hidden>
+        <div class="gate-state"><span class="btn-spinner" aria-hidden="true"></span> Memeriksa akun&hellip;</div>
+      </div>
+
+      <!-- State: akses ditolak -->
+      <div id="gateDenied" hidden>
+        <div class="gd-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <h1>Akses ditolak</h1>
+        <p class="gate-sub">Akun <strong id="gdEmail"></strong> belum terdaftar sebagai admin Gamaspace.</p>
+        <div class="gd-how">
+          <p id="gdHowText">Hanya <strong>pengelola utama</strong> yang dapat menambahkan admin baru. Silakan hubungi pengelola utama untuk meminta akses Admin Panel.</p>
+          <p class="gd-contact" id="gdContact" hidden><span>Pengelola utama</span> <strong id="gdRootEmail"></strong></p>
+          <p class="gd-contact" id="gdDbNote" hidden></p>
+        </div>
+        <div class="gd-actions">
+          <button type="button" id="gdRetry" class="btn-primary">Coba masuk lagi</button>
+          <a href="fasilitas.html">&larr; Kembali ke situs pengguna</a>
+        </div>
       </div>
     </div>
   </div>
@@ -453,14 +393,14 @@
     </main>
   </div>
 
-  <script src="assets/js/i18n.js"></script>
-  <script src="assets/js/vendor/qrcode.min.js"></script>
-  <script src="assets/js/vendor/jsQR.min.js"></script>
-  <script src="assets/js/core.js"></script>
-  <script src="assets/js/firebase-config.js"></script>
-  <script src="assets/js/auth.js"></script>
-  <script src="assets/js/data.js"></script>
-  <script src="assets/js/floorplan.js"></script>
-  <script src="assets/js/admin.js"></script>
+  <script src="assets/js/i18n.js?v=20261103"></script>
+  <script src="assets/js/vendor/qrcode.min.js?v=20261103"></script>
+  <script src="assets/js/vendor/jsQR.min.js?v=20261103"></script>
+  <script src="assets/js/core.js?v=20261103"></script>
+  <script src="assets/js/firebase-config.js?v=20261103"></script>
+  <script src="assets/js/auth.js?v=20261103"></script>
+  <script src="assets/js/data.js?v=20261103"></script>
+  <script src="assets/js/floorplan.js?v=20261103"></script>
+  <script src="assets/js/admin.js?v=20261103"></script>
 </body>
 </html>

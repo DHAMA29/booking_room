@@ -359,6 +359,22 @@ git push -u origin main
 Lalu: **Settings → Pages → Source: Deploy from a branch → Branch: `main` / `(root)` → Save**.
 URL: `https://<username>.github.io/campus-facility-booking/` — halaman ketentuan juga dapat diakses via `/ketentuan`.
 
+### Cache browser setelah deploy (penting!)
+
+Browser menyimpan cache CSS/JS hingga berhari-hari. Gejalanya: setelah mengunggah versi baru
+(mis. sudah mengisi `apiKey`/`authDomain` di `firebase-config.js`), situs masih berperilaku
+seperti versi lama — sementara membuka **jendela Chrome/Incognito baru** menampilkan versi
+terbaru. Itu bukan bug aplikasi, melainkan cache menumpuk.
+
+Penanganan:
+
+1. **Hard refresh** pada tab yang terbuka: `Ctrl+Shift+R` (Windows/Linux) atau
+   `Cmd+Shift+R` (macOS). Satu kali saja cukup — setelah itu versi baru tersimpan.
+2. Aplikasi ini sudah memakai **cache-busting**: setiap CSS/JS dirujuk dengan nomor versi
+   (`assets/js/app.js?v=20261103`). Setelah mengubah kode, naikkan nilai `VER` pada
+   `scripts/cache_bust.py` (atau edit manual `?v=` di keempat HTML) agar semua pengunjung
+   otomatis mengunduh versi baru tanpa hard refresh.
+
 ## Reset Data (DevTools Console)
 
 ```js

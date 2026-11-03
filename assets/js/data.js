@@ -295,7 +295,15 @@ window.CFB = window.CFB || {};
   }
 
   async function load() {
-    await loadLocalSeeds();
+    /* Kegagalan memuat seed lokal (mis. halaman dibuka via file:// atau
+       file JSON tidak tersedia) TIDAK boleh memblokir mode Firebase —
+       sinkronisasi pengajuan lewat database online tetap harus jalan. */
+    try {
+      await loadLocalSeeds();
+    } catch (e) {
+      SEED = [];
+      SEED_AVAIL = normalizeAvail(null);
+    }
     const ok = await tryFirebase();
     if (ok) applySeedLayoutFallback();
     else applyLocalMode();
