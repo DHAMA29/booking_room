@@ -92,6 +92,41 @@ Setelah 3 langkah di atas selesai:
 
 ---
 
+## Akun admin@admin.com (sudah disiapkan)
+
+Email **admin@admin.com** sudah didaftarkan pada `adminEmails` di
+`assets/js/firebase-config.js` — begitu akunnya ada, login di `admin.html`
+langsung mendapat **akses admin penuh** (setara admin lain; satu-satunya
+pembeda: hanya pengelola utama `dhamashidqiputra2007@mail.ugm.ac.id` yang
+bisa menambah admin baru).
+
+Kata sandi TIDAK disimpan di kode — buat akunnya sekali dengan **salah satu**
+cara berikut:
+
+### Opsi A — Lewat Firebase Console (paling cepat, tanpa apiKey)
+
+1. Buka <https://console.firebase.google.com/project/booking-room-ugm>
+2. Menu kiri → **Build → Authentication → Sign-in method** → aktifkan
+   **Email/Password** (bila belum).
+3. Tab **Users** → **Add user** →
+   - Email: `admin@admin.com`
+   - Password: minimal **6 karakter** (aturan Firebase — `admin` 5 huruf
+     akan ditolak; gunakan mis. `admin123` atau `admin1`)
+4. Selesai — buka `admin.html`, masuk dengan email & kata sandi tersebut.
+
+### Opsi B — Lewat formulir Daftar (butuh apiKey & authDomain terisi)
+
+1. Isi `apiKey` + `authDomain` pada `assets/js/firebase-config.js`
+   (lihat bagian **Bonus** di bawah).
+2. Buka halaman pengguna (`fasilitas.html`) → **Masuk** → tautan **Daftar**
+   → daftarkan `admin@admin.com` dengan kata sandinya.
+3. Buka `admin.html` → masuk dengan akun tersebut → akses admin aktif otomatis.
+
+> Ingat: naikkan angka `?v=` pada rujukan `firebase-config.js` di file HTML
+> (atau Ctrl+Shift+R) bila perubahan daftar admin tidak langsung terlihat.
+
+---
+
 ## Menambah Admin Baru (langsung aktif)
 
 Hanya **pengelola utama** (`rootAdminEmail` di `assets/js/firebase-config.js`, bawaan:

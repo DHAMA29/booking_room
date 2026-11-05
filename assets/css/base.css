@@ -81,7 +81,7 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 
 /* ===== Header ===== */
 .site-header { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--line); }
-.header-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+.header-inner { display: flex; align-items: center; justify-content: flex-start; height: 64px; gap: 16px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; }
 .brand:hover { text-decoration: none; color: var(--ink); }
 .brand-mark { color: var(--accent); flex-shrink: 0; }
@@ -94,7 +94,7 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
 .has-logo > .brand-logo { display: block; }
 .has-logo > .brand-mark { display: none; }
 
-.main-nav { display: flex; gap: 26px; align-items: center; }
+.main-nav { display: flex; gap: 26px; align-items: center; margin-left: auto; }
 .main-nav a {
   color: var(--ink-2); font-size: 14px; font-weight: 500; text-decoration: none;
   position: relative; display: inline-flex; align-items: center; gap: 6px;
@@ -106,6 +106,11 @@ code { font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:
   content: ''; position: absolute; left: 0; right: 0; bottom: -22px;
   height: 2px; background: var(--accent);
 }
+
+/* Alat header (pilih bahasa + akun) — dipisah dari navigasi utama.
+   Ponsel: ikut baris pertama bersama brand; navigasi turun ke baris kedua
+   sebagai tab (lihat app.css @640px). */
+.header-tools { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .badge-count {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 18px; height: 18px; padding: 0 6px;

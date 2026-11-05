@@ -31,7 +31,14 @@ window.CFB_FIREBASE = {
      Sebelum dipakai, aktifkan Authentication → Sign-in method:
      Google & Email/Password, dan tambahkan domain situs
      (mis. <user>.github.io) ke Authentication → Settings →
-     Authorized domains. Panduan lengkap: README → Firebase Auth. */
+     Authorized domains. Panduan lengkap: README → Firebase Auth.
+
+     PENTING — setelah mengisi/mengubah nilai di file ini dan
+     mengunggah ulang: browser bisa saja masih memakai versi LAMA
+     yang tersimpan di cache (gejala: pesan "login belum
+     dikonfigurasi" tetap muncul). Muat ulang paksa dengan
+     Ctrl+Shift+R / Cmd+Shift+R, atau naikkan angka ?v= pada
+     rujukan script di file HTML (lihat README → Cache browser). */
   apiKey: "AIzaSyAbH7LTLqfW1LVSNSCYVWkCsJChigkh33g",
   authDomain: "booking-room-ugm.firebaseapp.com",
 
@@ -58,6 +65,7 @@ window.CFB_FIREBASE = {
      ke /admins (first-claim) — set "allowFirstAdminClaim": false
      untuk menonaktifkannya. */
   adminEmails: [
+    "admin@admin.com", // akun admin (kata sandi dibuat saat mendaftarkan akun — lihat SETUP-FIREBASE.md)
     // 'email.anda@gmail.com'
   ],
   allowFirstAdminClaim: true,
@@ -86,7 +94,7 @@ window.CFB_FIREBASE = {
      Admin lain tetap dapat melihat daftar admin dan tombol
      Tambah Admin, namun akan menerima notifikasi "Akses Ditolak"
      bila menekannya. */
-  rootAdminEmail: "dhamashidqiputra2007@mail.ugm.ac.id",
+  rootAdminEmail: ["dhamashidqiputra2007@mail.ugm.ac.id", "admin@gmail.com"],
 };
 
 /* Struktur data di Realtime Database:

@@ -25,28 +25,20 @@
 .gate-hint { margin: 18px 0 0; font-size: 12.5px; color: var(--ink-3); text-align: center; line-height: 1.7; }
 
 /* ===== Shell: sidebar + main ===== */
+/* Sidebar ringkas: brand → nav → kaki akun (Keluar selalu terlihat).
+   overflow-y:auto = jaring pengaman bila layar sangat pendek, agar
+   tombol Keluar tidak pernah terpotong di bawah lipatan layar. */
 .admin-shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
 .admin-side {
   border-right: 1px solid var(--line); background: #fff;
   position: sticky; top: 0; height: 100vh;
   display: flex; flex-direction: column;
   padding: 22px 14px 18px;
+  overflow-y: auto; scrollbar-width: thin;
 }
-.side-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 18px; border-bottom: 1px solid var(--line-2); margin-bottom: 14px; font-weight: 700; color: var(--ink); font-size: 15px; }
+.side-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 18px; border-bottom: 1px solid var(--line-2); margin-bottom: 16px; font-weight: 700; color: var(--ink); font-size: 15px; }
 .side-brand .brand-mark { color: var(--accent); flex-shrink: 0; }
 .side-brand small { display: block; font-size: 11px; font-weight: 500; color: var(--ink-3); letter-spacing: .04em; }
-
-/* Jam — waktu perangkat, sederhana & bersih di bawah brand */
-.side-clock {
-  display: flex; flex-direction: column; gap: 1px;
-  padding: 0 12px 14px; margin-bottom: 14px;
-  border-bottom: 1px solid var(--line-2);
-}
-.side-clock .sc-time {
-  font-size: 17px; font-weight: 700; color: var(--ink);
-  font-variant-numeric: tabular-nums; letter-spacing: .01em; line-height: 1.25;
-}
-.side-clock .sc-date { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
 
 .side-nav { display: flex; flex-direction: column; gap: 4px; }
 .side-nav a {
@@ -62,16 +54,27 @@
 .side-nav a svg { color: var(--ink-3); flex-shrink: 0; transition: color .15s; }
 .side-nav a:hover svg { color: var(--ink-2); }
 .side-nav .badge-count { margin-left: auto; }
-.nav-group-label {
-  margin: 16px 12px 5px; font-size: 10.5px; font-weight: 700;
-  letter-spacing: .09em; text-transform: uppercase; color: var(--ink-4);
-}
-.side-nav .nav-group-label:first-of-type { margin-top: 2px; }
 
-.side-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line-2); display: flex; flex-direction: column; gap: 6px; }
-.side-foot a { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 13px; color: var(--ink-3); text-decoration: none; transition: color .14s, background .14s; }
-.side-foot a:hover { color: var(--ink); background: var(--line-2); text-decoration: none; }
-.side-foot .btn-ghost { justify-content: flex-start; padding: 8px 12px; font-size: 13px; border-radius: 8px; }
+/* Kaki sidebar — akun + aksi. Tombol Keluar berlabel penuh agar selalu
+   jelas terlihat di desktop (sebelumnya bisa terdorong ke bawah layar). */
+.side-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line-2); display: flex; flex-direction: column; gap: 10px; }
+.side-actions { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: 8px; }
+.side-logout {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 12px; border-radius: 9px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink-2);
+  transition: border-color .15s, color .15s, background .15s, transform .12s;
+}
+.side-logout:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+.side-logout:active { transform: scale(.97); }
+.side-logout svg { flex-shrink: 0; }
+.side-site {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 9px;
+  border: 1px solid var(--line); color: var(--ink-3); background: var(--bg);
+  transition: border-color .15s, color .15s, background .15s;
+}
+.side-site:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); text-decoration: none; }
 
 .admin-main { padding: 38px 44px 80px; max-width: 1060px; width: 100%; }
 .admin-main .page-head { margin-bottom: 24px; max-width: 760px; }
@@ -257,19 +260,18 @@
     position: sticky; top: 0; z-index: 50; background: #fff;
     height: auto; flex-direction: row; align-items: center; flex-wrap: wrap;
     gap: 4px 10px; border-right: none; border-bottom: 1px solid var(--line);
-    padding: 10px 14px 0;
+    padding: 10px 14px 0; overflow: visible;
   }
   .side-brand { order: 1; border: none; padding: 0 8px 0 0; margin: 0; }
   .side-brand small { display: none; }
-  .side-clock { display: none; }   /* layar sempit: hemat ruang */
   .side-foot {
     order: 2; margin: 0 0 0 auto; padding: 0; border: none;
     flex-direction: row; align-items: center; gap: 8px;
   }
-  .side-foot .btn-ghost { padding: 7px 11px; font-size: 12.5px; flex-shrink: 0; }
-  .side-foot a[target="_blank"] { display: none; }
+  .side-actions { display: flex; align-items: center; gap: 8px; }
+  .side-logout { padding: 7px 11px; font-size: 12.5px; flex-shrink: 0; }
+  .side-site { display: none; }   /* layar sempit: hemat ruang topbar */
   .who-card { max-width: 42vw; padding: 2px 0 8px; }
-  .who-name { display: none; }     /* cukup email di layar sempit */
   .side-nav {
     order: 3; flex: 1 1 100%; min-width: 0;
     flex-direction: row; overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -277,7 +279,6 @@
     padding: 4px 0 6px;
   }
   .side-nav a { padding: 8px 11px; font-size: 13px; white-space: nowrap; }
-  .side-nav .nav-group-label { display: none; }   /* label grup tidak muat di bar horizontal */
   .admin-main { padding: 22px 16px 56px; }
 
   /* Judul & lede lebih ringkas */
@@ -401,13 +402,14 @@
   background: var(--danger-soft); border: 1px solid #FECACA;
   border-radius: 9px; font-size: 12.5px; line-height: 1.55; color: var(--danger);
 }
-.gate-switch {
-  display: block; width: 100%; margin-top: 16px;
-  background: none; border: none; padding: 2px;
-  font-size: 13px; color: var(--ink-3); text-align: center; cursor: pointer;
+/* Pesan galat pemindaian memakai atribut hidden (bukan class has-error
+   di dalam .form-row) — tanpa aturan ini .field-error{display:none} pada
+   base.css membuat pesan galat Scanner TIDAK PERNAH terlihat petugas. */
+#scanError:not([hidden]) {
+  display: block; margin: 10px 0 0; padding: 9px 12px;
+  background: var(--danger-soft); border: 1px solid #FECACA;
+  border-radius: 9px; font-size: 12.5px; line-height: 1.55; color: var(--danger);
 }
-.gate-switch strong { color: var(--accent); font-weight: 600; }
-.gate-switch:hover strong { text-decoration: underline; }
 .gate-state {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   padding: 26px 0 10px; color: var(--ink-3); font-size: 14px;
@@ -433,22 +435,15 @@
   .gate-screen { padding: 16px; }
   .gate-card { padding: 28px 20px 24px; }
 }
-/* ===== Akun admin aktif (kaki sidebar) — datar, tanpa avatar:
-     cukup nama & email, bersih dan profesional. ===== */
+/* ===== Akun admin aktif (kaki sidebar) — ringkas: email + chip peran. ===== */
 .who-card {
-  display: flex; flex-direction: column; gap: 1px;
-  padding: 2px 12px 10px; min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding: 2px 10px 8px; min-width: 0;
 }
-.who-name {
-  font-size: 13px; font-weight: 600; color: var(--ink);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.who-name[hidden] { display: none; }
 .who-email {
-  font-size: 12px; font-weight: 400; color: var(--ink-3);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 12px; font-weight: 600; color: var(--ink-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
-.who-card.is-root .who-name { color: #92400E; }
 
 /* ===== Tab Admin & Tab Pengguna — daftar dalam kartu bersih =====
    Setiap baris: inisial (avatar) + email + chip peran + aksi.
@@ -735,11 +730,11 @@ body.role-petugas .side-nav .admin-only { display: none; }
 
 /* ===== Ponsel (≤640px) — perbaikan detail ===== */
 @media (max-width: 640px) {
-  /* Sidebar atas: hemat ruang — tautan keluar situs disembunyikan,
-     identitas (email) dipersingkat */
+  /* Sidebar atas: hemat ruang — identitas (email) dipersingkat */
   .admin-side { padding: 10px 12px; }
-  .side-foot a[target="_blank"] { display: none; }
   .who-card { max-width: 140px; padding: 2px 6px 8px; }
+  .who-role { display: none; }   /* chip peran disembunyikan di topbar sempit */
+  .side-logout { padding: 7px 10px; font-size: 12px; }
   .side-nav a { padding: 8px 9px; font-size: 12.5px; gap: 7px; }
 
   .admin-main { padding: 18px 12px 48px; }

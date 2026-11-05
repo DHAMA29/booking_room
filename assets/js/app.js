@@ -299,6 +299,37 @@
     $('#timeSummary').hidden = true;
     $('#durationMaxLabel').textContent = maxDur;
     $('#durationMaxLabel2').textContent = maxDur;
+
+    /* Bug laporan: bila seluruh jam operasional HARI INI sudah terlewat
+       (fasilitas tutup 17.00, halaman dibuka setelahnya) atau sudah penuh,
+       "Pilih jam mulai" dulu tampil tanpa apa pun. Kini:
+       1. Chip tanggal yang jatahnya habis ditandai redup (ada penjelasan),
+       2. Bila hari ini habis, halaman OTOMATIS menampilkan tanggal
+          berikutnya yang masih punya slot — tidak ada lagi layar kosong. */
+    const todayDs = CFB.util.todayStr();
+    const nowH0 = CFB.util.nowHour();
+    let firstGood = null;
+    $$('#dateChips .date-chip').forEach(chip => {
+      if (chip.disabled) return;                      // libur/closure — sudah bertanda
+      const ds = chip.dataset.date;
+      const { start, end } = CFB.data.hoursOfDay(f);
+      const isToday = ds === todayDs;
+      let free = false;
+      for (let h = start; h < end; h++) {
+        if (isToday && h <= nowH0) continue;          // jam sudah lewat hari ini
+        if (!CFB.data.isHourTaken(f.id, ds, h)) { free = true; break; }
+      }
+      if (!free) {
+        chip.classList.add('exhausted');
+        chip.title = T('sched.chipExhausted');
+      } else if (!firstGood) {
+        firstGood = chip;
+      }
+    });
+    const todayChip = $('#dateChips .date-chip[data-date="' + todayDs + '"]');
+    const todayOk = todayChip && !todayChip.disabled && !todayChip.classList.contains('exhausted');
+    if (!todayOk && firstGood) selectDate(firstGood.dataset.date, firstGood);
+
     updateContinueBtn();
     showPage('schedule');
   }
@@ -344,10 +375,53 @@
       wrap.appendChild(btn);
     }
     if (!anyFree) {
-      wrap.innerHTML = '<p class="muted">' + esc(T('sched.allTaken')) + '</p>';
+      /* Jangan kosongkan area jadwal — slot yang terisi/terlewat tetap
+         ditampilkan (bergaya coret) supaya jadwal hari itu terbaca,
+         lalu diberi catatan + pintasan "Lanjut ke <tanggal>" bila masih
+         ada tanggal berikutnya yang punya slot bebas. */
+      const note = document.createElement('div');
+      note.className = 'slots-empty';
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = T('sched.allTaken');
+      note.appendChild(p);
+      const jumpDs = nextDateWithFreeSlot(f, state.date);
+      if (jumpDs) {
+        const jp = CFB.util.dateParts(jumpDs);
+        const jump = document.createElement('button');
+        jump.type = 'button';
+        jump.className = 'slots-jump';
+        jump.textContent = T('sched.jumpNext', { date: jp.day + ', ' + jp.date + ' ' + jp.month });
+        jump.addEventListener('click', () => {
+          const chip = $('.date-chip[data-date="' + jumpDs + '"]');
+          if (chip && !chip.disabled) selectDate(jumpDs, chip);
+        });
+        note.appendChild(jump);
+      }
+      wrap.appendChild(note);
     }
     updateSlotStates();
     CFB.util.stagger(wrap);
+  }
+
+  /* Tanggal bookable SETELAH `fromDate` yang masih punya slot bebas
+     (bukan hari libur/closure, tidak penuh). Return null bila tidak ada. */
+  function nextDateWithFreeSlot(f, fromDate) {
+    const dates = CFB.data.bookableDates();
+    const idx = dates.indexOf(fromDate);
+    if (idx < 0) return null;
+    const today = CFB.util.todayStr();
+    const nowH = CFB.util.nowHour();
+    for (let i = idx + 1; i < dates.length; i++) {
+      const ds = dates[i];
+      if (CFB.data.dayClosure(f.id, ds)) continue;
+      const { start, end } = CFB.data.hoursOfDay(f);
+      for (let h = start; h < end; h++) {
+        if (ds === today && h <= nowH) continue;
+        if (!CFB.data.isHourTaken(f.id, ds, h)) return ds;
+      }
+    }
+    return null;
   }
 
   /* Jam yang termasuk rentang durasi terpilih ikut terkunci.

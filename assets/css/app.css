@@ -96,78 +96,120 @@
 .sidebar-note.no { border-left-color: var(--danger); background: var(--danger-soft); }
 .sidebar-cta { margin-top: 24px; width: 100%; }
 
-/* ===== Schedule ===== */
-.schedule-summary { padding: 16px 0; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
-.schedule-summary .ss-name { font-weight: 600; color: var(--ink); margin: 0; }
-.schedule-summary .ss-meta { font-size: 13px; color: var(--ink-3); margin: 0; }
+/* ===== Schedule — ubin lembut, pilihan = garis tepi (redesain final) =====
+   Prinsip: NOL garis bingkai & NOL panel tabel. Setiap pilihan = ubin
+   abu lembut bersudut membulat yang dipisahkan RUANG KOSONG. Pilihan
+   aktif TIDAK diisi penuh: latar biru muda lembut + garis tepi navy +
+   teks navy (outline, seperti referensi); tidak tersedia = teks redup
+   tercoret tanpa isi. Satu bahasa visual untuk ketiga langkah. */
+.schedule-summary { padding: 16px 0; border-bottom: 1px solid var(--line); margin-bottom: 34px; }
+.schedule-summary .ss-name { font-weight: 700; font-size: 16.5px; letter-spacing: -.01em; color: var(--ink); margin: 0; }
+.schedule-summary .ss-meta { font-size: 13px; color: var(--ink-3); margin: 2px 0 0; }
 
-.schedule-grid { display: grid; gap: 36px; }
-.schedule-block .block-title { font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 6px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.schedule-grid { display: grid; gap: 38px; }
+.schedule-block .block-title { font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); margin: 0 0 6px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .schedule-block .block-sub { font-size: 13px; color: var(--ink-3); margin: 0 0 14px; }
 
-.date-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+/* Langkah 1 — kalender 7 kolom (14 hari ke depan = 2 baris rapi).
+   Ubin lembut tanpa bingkai; jarak antar ubin yang memisahkan. */
+.date-chips {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;
+}
 .date-chip {
-  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 12px 8px; text-align: center; cursor: pointer;
-  display: flex; flex-direction: column; gap: 2px;
-  transition: border-color .15s, background .15s, transform .12s, box-shadow .15s;
+  background: var(--bg-soft); border: 2px solid transparent; border-radius: 10px;
+  padding: 10px 4px 9px; text-align: center; cursor: pointer;
+  display: flex; flex-direction: column; gap: 1px;
+  transition: background .15s;
 }
-.date-chip:hover:not(:disabled) { border-color: var(--ink-3); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-.date-chip:active:not(:disabled) { transform: scale(.97); }
-.date-chip[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
-.date-chip:disabled { opacity: .45; cursor: not-allowed; }
-.date-chip .dc-day { font-size: 11px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
-.date-chip .dc-date { font-size: 20px; font-weight: 700; color: var(--ink); line-height: 1.1; }
-.date-chip .dc-month { font-size: 11px; color: var(--ink-3); }
-.date-chip[aria-checked="true"] .dc-day, .date-chip[aria-checked="true"] .dc-month { color: var(--accent); }
+.date-chip:hover:not(:disabled):not([aria-checked="true"]) { background: var(--line-2); }
+.date-chip:disabled { opacity: .5; cursor: not-allowed; }
+.date-chip .dc-day { font-size: 10.5px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+.date-chip .dc-date { font-size: 19px; font-weight: 700; color: var(--ink); line-height: 1.15; font-variant-numeric: tabular-nums; }
+.date-chip .dc-month { font-size: 10.5px; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+/* Tanggal yang jatahnya habis (semua jam terisi/terlewat) — teks diredupkan,
+   ubin tetap bisa diklik agar jadwalnya terbaca. Diletakkan SEBELUM aturan
+   pilihan agar warna teks terpilih (navy) tetap menang. */
+.date-chip.exhausted .dc-day, .date-chip.exhausted .dc-date, .date-chip.exhausted .dc-month { color: var(--ink-4); }
+.date-chip[aria-checked="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.date-chip[aria-checked="true"] .dc-day { color: var(--accent); }
+.date-chip[aria-checked="true"] .dc-date { color: var(--accent); }
+.date-chip[aria-checked="true"] .dc-month { color: var(--accent); }
 
-.time-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+/* Langkah 2 — jam: ubin lembut seragam. Terpilih = outline navy di atas
+   biru muda (bukan blok penuh); terisi/terlewat = teks redup tercoret
+   TANPA isi abu (lebih tenang). */
+.time-slots {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px;
+}
 .time-slot {
-  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 11px 8px; text-align: center; cursor: pointer;
+  background: var(--bg-soft); border: 2px solid transparent; border-radius: 10px;
+  padding: 12px 8px; text-align: center; cursor: pointer;
   font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums;
-  transition: border-color .15s, background .15s, transform .12s, box-shadow .15s, color .15s;
+  transition: background .15s, color .15s;
 }
-.time-slot:hover:not(:disabled) { border-color: var(--ink-3); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-.time-slot:active:not(:disabled) { transform: scale(.96); }
-.time-slot[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); box-shadow: 0 0 0 1px var(--accent); animation: popIn .25s var(--ease-bounce); }
-.time-slot.taken, .time-slot.past { color: var(--ink-4); background: var(--line-2); cursor: not-allowed; text-decoration: line-through; }
+.time-slot:hover:not(:disabled):not([aria-checked="true"]) { background: var(--line-2); }
+.time-slot[aria-checked="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; animation: popIn .25s var(--ease-bounce); }
+.time-slot.taken, .time-slot.past {
+  background: none; color: var(--ink-4); cursor: not-allowed;
+  text-decoration: line-through; font-weight: 500;
+}
 .time-slot:disabled { cursor: not-allowed; }
-/* Revisi 1: jam yang termasuk rentang durasi terpilih ikut terkunci */
-.time-slot.consumed {
-  border: 1px dashed #BFDBFE; background: var(--accent-soft);
-  color: var(--accent); opacity: .68; cursor: not-allowed;
+.time-slot.consumed { background: var(--accent-soft); border-color: #BFDBFE; border-style: dashed; color: var(--accent); opacity: .75; cursor: not-allowed; }
+/* teks pengisi "pilih tanggal dahulu" — teks redup polos, bukan ubin */
+.time-slots > p {
+  grid-column: 1 / -1; background: none; margin: 0; padding: 2px 0;
+  border: none; font-size: 13.5px;
 }
-.slot-legend { display: flex; gap: 18px; margin-top: 12px; font-size: 12px; color: var(--ink-3); flex-wrap: wrap; }
+
+.slot-legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--ink-3); flex-wrap: wrap; }
 .slot-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.slot-legend i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--line); display: inline-block; }
-.slot-legend i.l-taken { background: var(--line-2); border-color: var(--line); }
-.slot-legend i.l-free { background: var(--bg); }
+.slot-legend i { width: 13px; height: 13px; border-radius: 4px; border: 1px solid var(--line); display: inline-block; }
+.slot-legend i.l-taken { background: none; border: 1px dashed var(--line); }
+.slot-legend i.l-free { background: var(--bg-soft); }
 .slot-legend i.l-consumed { background: var(--accent-soft); border: 1px dashed #BFDBFE; }
 
-/* Pemilih durasi */
-.dp-options { display: flex; gap: 10px; flex-wrap: wrap; }
-.dp-opt {
-  flex: 1; max-width: 230px; text-align: left;
-  border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 13px 16px; background: var(--bg); cursor: pointer;
-  display: flex; flex-direction: column; gap: 2px;
-  transition: border-color .15s, background .15s, transform .12s, box-shadow .15s;
+/* Catatan "semua jam habis/terlewat" + pintasan ke tanggal berikutnya —
+   teks redup + tautan bergaris bawah, tanpa kotak apa pun (menggantikan
+   area kosong saat halaman dibuka setelah jam tutup, mis. 17.00). */
+.slots-empty {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 8px 14px; background: none; padding: 6px 0 2px; border: none;
 }
-.dp-opt:hover:not(:disabled) { border-color: var(--ink-3); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.slots-empty .muted { margin: 0; font-size: 13.5px; }
+.slots-jump {
+  display: inline-flex; align-items: center;
+  background: none; border: none; border-radius: 0;
+  color: var(--accent); font-size: 13.5px; font-weight: 600;
+  padding: 2px 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+  transition: color .14s;
+}
+.slots-jump:hover { color: var(--accent-2); background: none; box-shadow: none; }
+
+/* Langkah 3 — durasi: ubin lembut sejajar, pilihan = outline navy. */
+.dp-options { display: flex; gap: 8px; max-width: 440px; }
+.dp-opt {
+  flex: 1; min-width: 0; text-align: center;
+  border: 2px solid transparent; border-radius: 10px;
+  padding: 12px 18px; background: var(--bg-soft); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: background .15s;
+}
+.dp-opt:hover:not(:disabled):not([aria-checked="true"]) { background: var(--line-2); }
 .dp-opt strong { font-size: 14.5px; color: var(--ink); }
 .dp-opt span { font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.dp-opt[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.dp-opt[aria-checked="true"] { background: var(--accent-soft); border-color: var(--accent); }
 .dp-opt[aria-checked="true"] strong { color: var(--accent); }
+.dp-opt[aria-checked="true"] span { color: var(--accent); opacity: .8; }
 .dp-opt:disabled { opacity: .5; cursor: not-allowed; }
 
-/* Ringkasan waktu terpilih */
+/* Ringkasan waktu terpilih — bilah aksen tipis di kiri, tanpa kotak */
 .time-summary {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
-  margin-top: 30px; padding: 15px 18px;
-  border: 1px solid #BFDBFE; background: var(--accent-soft);
-  border-radius: var(--radius); color: var(--ink);
-  font-size: 14.5px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  margin-top: 30px; padding: 4px 0 4px 16px;
+  border: none; border-left: 3px solid var(--accent);
+  background: none; border-radius: 0;
+  color: var(--ink-2); font-size: 14.5px;
 }
 .time-summary svg { color: var(--accent); flex-shrink: 0; }
 .time-summary strong { color: var(--ink); }
@@ -308,38 +350,99 @@
 
 /* ===== Responsive ===== */
 @media (max-width: 820px) {
-  .detail-body { grid-template-columns: 1fr; gap: 32px; }
-  .detail-sidebar { border-left: none; border-top: 1px solid var(--line); padding-left: 0; padding-top: 24px; }
+  .detail-body { grid-template-columns: 1fr; gap: 28px; }
+  /* Ponsel: panel ringkasan (status + tombol Ajukan) dinaikkan ke atas
+     agar CTA terjangkau jempol tanpa menggulir seluruh deskripsi —
+     pola umum halaman booking (harga/CTA selalu terlihat lebih awal). */
+  .detail-sidebar {
+    order: -1;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg-soft); padding: 6px 16px 16px;
+  }
+  .sidebar-cta { margin-top: 18px; }
 }
 @media (max-width: 640px) {
   .container { padding: 0 16px; }
-  .main-content { padding: 32px 16px 64px; }
+  .main-content { padding: 28px 16px 24px; }
+  .page-head { margin-bottom: 26px; }
   .page-head h1 { font-size: 26px; }
   .detail-name { font-size: 28px; }
-  .header-inner { height: auto; min-height: 56px; flex-wrap: wrap; row-gap: 10px; padding: 10px 0; }
+
+  /* ===== Header 2 baris yang rapi =====
+     Grid 2x2 — baris 1: brand | alat (bahasa + akun); baris 2: tab navigasi.
+     Dulu: `padding: 10px 0 12px` menghapus padding samping .container sehingga
+     logo menempel ke garis tepi kiri dan chip akun ke tepi kanan layar; dan
+     flex-wrap melipat baris 1 jadi 3 baris di layar <=360px. Dengan grid,
+     baris 1 SELALU satu baris (nama chip memendek "...") + tepi 16px. */
+  .header-inner {
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "brand tools" "nav nav";
+    align-items: center; column-gap: 12px; row-gap: 12px;
+    height: auto; min-height: 0; padding: 16px 16px 14px;
+  }
+  .brand { grid-area: brand; }
   .brand-name { font-size: 14px; }
-  .main-nav { gap: 12px 16px; width: 100%; flex-wrap: wrap; row-gap: 8px; }
-  .main-nav a { font-size: 13px; }
-  /* Garis bawah item aktif tidak akurat saat nav membungkus — sembunyikan */
+  /* Track memuat (stretch) + isi rata kanan: chip akun menyusut mulus
+     (nama jadi "...") saat layar sempit — tidak pernah menimpa logo. */
+  .header-tools { grid-area: tools; justify-self: stretch; justify-content: flex-end; gap: 10px; min-width: 0; }
+  #authArea, .auth-chip, .btn-login { min-width: 0; }
+  /* max-width menutup rantai penyusutan: .auth-wrap tidak lagi "menggantung"
+     keluar track saat nama akun panjang — chip ikut menyusut, nama memendek */
+  .auth-wrap { min-width: 0; max-width: 100%; }
+  /* Target sentuh lebih layak di ponsel (chip ~42px, toggle ~32px) */
+  .auth-chip { max-width: 132px; padding: 6px 12px 6px 6px; }
+  .auth-ava { width: 28px; height: 28px; }
+  .lang-toggle button { padding: 6px 11px; }
+  .main-nav { grid-area: nav; margin-left: 0; width: 100%; gap: 8px; }
+  .main-nav a {
+    flex: 1 1 0; justify-content: center; text-align: center;
+    min-height: 44px; padding: 10px 8px; border-radius: 10px;
+    background: var(--line-2); font-size: 13.5px; font-weight: 600; color: var(--ink-2);
+  }
+  .main-nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
   .main-nav a.active::after { display: none; }
-  .main-nav a.active { color: var(--accent); font-weight: 600; }
-  .lang-toggle { order: 10; margin-left: auto; }
-  #authArea { order: 11; }
+
   .facility-side { flex-direction: row; justify-content: space-between; align-items: center; grid-column: 1 / -1; }
   .form-grid-2 { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: 1fr; }
   .detail-amenities-list { grid-template-columns: 1fr; }
   .summary-card { padding: 20px; }
   .success-hero { padding: 20px; gap: 14px; }
-  .filter-wrap select { min-width: 0; flex: 1; }
-  .toolbar { gap: 8px; }
+
+  /* Filter: grid 2 kolom yang stabil (bukan flex-wrap yang bergeser) */
+  .filter-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .filter-wrap select { min-width: 0; }
+  .toolbar { gap: 10px; }
   /* Pencarian memenuhi satu baris penuh agar mudah dijangkau jempol */
   .toolbar .search-wrap { flex: 1 1 100%; min-width: 0; }
-  .date-chips { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
-  .date-chip .dc-date { font-size: 18px; }
-  .time-slots { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
-  .dp-options { flex-direction: column; }
-  .dp-opt { max-width: none; }
+
+  /* Tombol aksi utama menempel di bawah layar saat menggulir jadwal —
+     tidak perlu mencari tombol "Lanjut" di dasar halaman panjang. */
+  .action-bar {
+    position: sticky; bottom: 0; z-index: 20;
+    margin: 26px -16px -24px; padding: 14px 16px 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.96) 26%, #FFFFFF 100%);
+  }
+  .action-bar .btn-primary, .action-bar .btn-ghost { flex: 1 1 auto; }
+
+  /* Target sentuh lebih lega untuk tombol kembali */
+  .back-link { padding: 10px 14px 10px 0; margin-bottom: 18px; }
+
+  /* Ubin kalender/jam/durasi — ritme mobile yang proporsional:
+     tepi layar 16px (sejajar header), gutter antar ubin 8px = setengah
+     tepi (rasio klasik 2:1), jarak antar langkah dirapatkan agar tidak
+     terasa renggang di layar kecil. */
+  .schedule-summary { padding: 12px 0; margin-bottom: 24px; }
+  .schedule-grid { gap: 28px; }
+  .schedule-block .block-sub { margin-bottom: 12px; }
+  .slot-legend { margin-top: 12px; gap: 10px 14px; }
+  .time-summary { margin-top: 22px; }
+  .date-chip { padding: 8px 2px 7px; }
+  .date-chip .dc-day, .date-chip .dc-month { font-size: 9.5px; letter-spacing: .03em; }
+  .date-chip .dc-date { font-size: 16px; }
+  .time-slots { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+  .time-slot { padding: 11px 4px; font-size: 13px; }
+  .dp-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-width: none; }
   .bi-grid { grid-template-columns: 1fr 1fr; gap: 12px 14px; }
   .toast-stack { top: 10px; right: 10px; width: calc(100vw - 20px); }
   .form-actions { flex-direction: column-reverse; }

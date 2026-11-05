@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=20261103" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20261103" />
+  <link rel="stylesheet" href="assets/css/base.css?v=20261105" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20261105" />
 </head>
 <body>
 
@@ -71,7 +71,7 @@
         <h1>Akses ditolak</h1>
         <p class="gate-sub">Akun <strong id="gdEmail"></strong> belum terdaftar sebagai admin Gamaspace.</p>
         <div class="gd-how">
-          <p id="gdHowText">Hanya <strong>pengelola utama</strong> yang dapat menambahkan admin baru. Silakan hubungi pengelola utama untuk meminta akses Admin Panel.</p>
+          <p id="gdHowText">Silakan hubungi pengelola utama untuk meminta akses.</p>
           <p class="gd-contact" id="gdContact" hidden><span>Pengelola utama</span> <strong id="gdRootEmail"></strong></p>
           <p class="gd-contact" id="gdDbNote" hidden></p>
         </div>
@@ -94,12 +94,7 @@
         </svg>
         <span>Gamaspace<small>ADMIN PANEL</small></span>
       </div>
-      <div class="side-clock" id="sideClock">
-        <span class="sc-time" id="scTime">--:--:--</span>
-        <span class="sc-date" id="scDate"></span>
-      </div>
       <nav class="side-nav" aria-label="Navigasi admin">
-        <p class="nav-group-label">Ikhtisar</p>
         <a href="#scanner" data-tab="scanner" class="petugas-only" hidden>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" x2="17" y1="12" y2="12"/></svg>
           <span data-i18n="nav.scanner">Scanner</span>
@@ -108,7 +103,6 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
           Dashboard
         </a>
-        <p class="nav-group-label admin-only">Akun</p>
         <a href="#admin" data-tab="admin" class="admin-only">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
           Admin
@@ -117,7 +111,6 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Pengguna
         </a>
-        <p class="nav-group-label">Pengelolaan</p>
         <a href="#pengajuan" data-tab="pengajuan">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
           Pengajuan <span id="pendingBadge" class="badge-count" hidden>0</span>
@@ -129,12 +122,18 @@
       </nav>
       <div class="side-foot">
         <div id="adminWho" class="who-card" hidden>
-          <span class="who-name" id="whoName"></span>
           <span class="who-email" id="whoEmail"></span>
           <span class="who-role" id="whoRole" hidden></span>
         </div>
-        <a href="fasilitas.html" target="_blank" rel="noopener">Lihat situs pengguna &nearr;</a>
-        <button id="logoutBtn" class="btn-ghost" type="button">Keluar</button>
+        <div class="side-actions">
+          <button id="logoutBtn" class="side-logout" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+            <span>Keluar</span>
+          </button>
+          <a href="fasilitas.html" target="_blank" rel="noopener" class="side-site" title="Lihat situs pengguna" aria-label="Lihat situs pengguna">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+          </a>
+        </div>
       </div>
     </aside>
 
@@ -393,14 +392,14 @@
     </main>
   </div>
 
-  <script src="assets/js/i18n.js?v=20261103"></script>
-  <script src="assets/js/vendor/qrcode.min.js?v=20261103"></script>
-  <script src="assets/js/vendor/jsQR.min.js?v=20261103"></script>
-  <script src="assets/js/core.js?v=20261103"></script>
-  <script src="assets/js/firebase-config.js?v=20261103"></script>
-  <script src="assets/js/auth.js?v=20261103"></script>
-  <script src="assets/js/data.js?v=20261103"></script>
-  <script src="assets/js/floorplan.js?v=20261103"></script>
-  <script src="assets/js/admin.js?v=20261103"></script>
+  <script src="assets/js/i18n.js?v=20261107"></script>
+  <script src="assets/js/vendor/qrcode.min.js?v=20261105"></script>
+  <script src="assets/js/vendor/jsQR.min.js?v=20261105"></script>
+  <script src="assets/js/core.js?v=20261105"></script>
+  <script src="assets/js/firebase-config.js?v=20261107"></script>
+  <script src="assets/js/auth.js?v=20261105"></script>
+  <script src="assets/js/data.js?v=20261105"></script>
+  <script src="assets/js/floorplan.js?v=20261105"></script>
+  <script src="assets/js/admin.js?v=20261105"></script>
 </body>
 </html>
