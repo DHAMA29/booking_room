@@ -1,26 +1,20 @@
-# Gamaspace
 
-> **Campus facility booking, made clear.**
->
-> Temukan ruang. Pilih waktu. Ajukan. Selesai.
 
 <p align="center">
-  <img src="assets/images/readme-banner.svg" alt="Alur booking Gamaspace" width="100%">
+  <img src="assets/images/logo.png" alt="Logo Gamaspace" width="150">
 </p>
 
 <p align="center">
-  <img src="assets/images/logo.png" alt="Logo Gamaspace" width="92">
+  <img src="assets/images/readme-typing.svg" alt="Highlight Gamaspace" width="100%">
 </p>
 
 <p align="center">
   <a href="https://dhama29.github.io/booking_room/"><strong>Open live demo →</strong></a>
 </p>
 
-Platform peminjaman fasilitas kampus yang menghubungkan pengguna, admin, dan petugas lapangan dalam satu alur booking yang jelas.
+Gamaspace adalah platform peminjaman fasilitas kampus yang menghubungkan pengguna, admin, dan petugas lapangan dalam satu alur booking yang jelas. Pengguna dapat melihat ruang yang sesuai, memilih slot yang tersedia, lalu mengikuti status pengajuan sampai kunci dikembalikan.
 
-| Produk    | Pengguna                        | Demo                                                      |
-| --------- | ------------------------------- | --------------------------------------------------------- |
-| Gamaspace | Mahasiswa, staf, admin, petugas | [Buka Gamaspace](https://dhama29.github.io/booking_room/) |
+Satu ruang kerja untuk booking yang lebih teratur: pengguna menemukan ruang, admin mengatur keputusan, dan petugas memastikan serah-terima berjalan cepat.
 
 ## Masalah → Solusi
 
@@ -49,6 +43,12 @@ Platform peminjaman fasilitas kampus yang menghubungkan pengguna, admin, dan pet
 - Scan QR saat serah-terima kunci.
 - Ekspor laporan CSV/PDF.
 
+### Tiga layar utama
+
+1. **Halaman pengguna** — eksplorasi fasilitas, jadwal, formulir, dan riwayat.
+2. **Panel admin** — dashboard, pengajuan, fasilitas, akun, dan laporan.
+3. **Scanner petugas** — validasi QR dan pencatatan kunci secara langsung.
+
 ## Teknologi
 
 | Area     | Teknologi                           |
@@ -62,6 +62,8 @@ Platform peminjaman fasilitas kampus yang menghubungkan pengguna, admin, dan pet
 ## Alur Singkat
 
 `Explore` → `Pilih fasilitas` → `Pilih slot` → `Ajukan` → `Disetujui` → `Scan QR` → `Checked-in` → `Selesai`
+
+Pengajuan yang disetujui menghasilkan bukti QR. Saat peminjam datang, petugas memindai QR, menyerahkan kunci, dan mengubah status menjadi **Checked-in**. Setelah kunci dikembalikan atau waktu pemakaian berakhir, status berubah menjadi **Selesai**.
 
 ```mermaid
 flowchart LR
@@ -83,6 +85,24 @@ flowchart LR
 ## Penggunaan AI
 
 AI digunakan untuk membantu analisis kebutuhan, perancangan alur dan data, implementasi UI, pengecekan edge case, pengujian, serta penyusunan dokumentasi. Semua hasil AI ditinjau dan diuji kembali sebelum digunakan.
+
+## Mulai Cepat
+
+| Akses                                                | Tujuan                 |
+| ---------------------------------------------------- | ---------------------- |
+| [Live demo](https://dhama29.github.io/booking_room/) | Coba aplikasi langsung |
+| `index.html`                                         | Halaman pengguna       |
+| `admin.html`                                         | Panel admin            |
+| `ketentuan.html`                                     | Ketentuan peminjaman   |
+
+```bash
+python3 -m http.server 8000
+```
+
+Buka `http://localhost:8000/` di browser.
+
+<details>
+<summary><strong>Dokumentasi teknis lengkap</strong></summary>
 
 ## Arsitektur Data
 
@@ -140,7 +160,7 @@ campus-facility-booking/
     │   └── vendor/
     │       └── qrcode.min.js  # qrcode-generator (MIT, Kazuhiko Arase) — lokal, tanpa CDN
     └── images/
-        ├── readme-banner.svg     # ilustrasi animasi alur booking pada README
+        ├── readme-typing.svg     # animasi teks highlight pada README
         ├── logo.png              # logo Gamaspace (landing, navbar, gate & sidebar admin)
         ├── balairung.jpg         # foto Balairung UGM untuk footer sistem
         ├── ugm-logo-white.png    # logo UGM putih untuk footer sistem
@@ -508,6 +528,6 @@ Untuk data di Firebase: gunakan Admin Panel (hapus semua pengajuan / reset fasil
 - Fasilitas yang dihapus admin tetap tampil pada riwayat pengajuan lama (pengajuan menyimpan snapshot).
 - Prototipe: daftar admin (`adminEmails` / `/admins`) dan Rules terbuka bersifat sisi-klien — cukup untuk prototipe/tugas; untuk produksi, verifikasi admin di server (Cloud Functions + App Check) dan rapatkan Rules.
 
-## Lisensi
 
-Bebas digunakan untuk tujuan edukasi.
+
+</details>
