@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 92" role="img" aria-labelledby="title desc">
+  <title id="title">Gamaspace highlights</title>
+  <desc id="desc">Animated highlights: book rooms, manage schedules, and scan QR codes.</desc>
+  <style>
+    .highlight { fill: #1864ab; }
+    .accent { stroke: #74c0fc; }
+    @media (prefers-color-scheme: dark) {
+      .highlight { fill: #a5d8ff; }
+      .accent { stroke: #63e6be; }
+    }
+  </style>
+  <path class="accent" d="M300 75H600" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="18 12" opacity=".8">
+    <animate attributeName="stroke-dashoffset" from="0" to="-60" dur="2s" repeatCount="indefinite"/>
+  </path>
+  <g class="highlight" font-family="Arial, sans-serif" font-size="25" font-weight="700" text-anchor="middle">
+    <text x="450" y="57">Cari ruang dengan mudah
+      <animate attributeName="opacity" values="1;0;0;0" keyTimes="0;.333;.666;1" dur="6s" calcMode="discrete" repeatCount="indefinite"/>
+      <animate attributeName="y" values="57;51;57;57" keyTimes="0;.12;.24;1" dur="6s" repeatCount="indefinite"/>
+    </text>
+    <text x="450" y="57" opacity="0">Booking tanpa bentrok
+      <animate attributeName="opacity" values="0;1;0;0" keyTimes="0;.333;.666;1" dur="6s" calcMode="discrete" repeatCount="indefinite"/>
+      <animate attributeName="y" values="57;51;57;57" keyTimes=".333;.45;.57;1" dur="6s" repeatCount="indefinite"/>
+    </text>
+    <text x="450" y="57" opacity="0">Scan QR, selesai dengan jelas
+      <animate attributeName="opacity" values="0;0;1;0" keyTimes="0;.333;.666;1" dur="6s" calcMode="discrete" repeatCount="indefinite"/>
+      <animate attributeName="y" values="57;57;51;57" keyTimes=".666;.78;.9;1" dur="6s" repeatCount="indefinite"/>
+    </text>
+  </g>
+</svg>
