@@ -782,6 +782,11 @@ window.CFB = window.CFB || {};
       'plan.tableRound': 'Round table',
       'plan.seat': 'Chair',
       'plan.door': 'Door',
+      'plan.courtBasket': 'Lapangan basket (28×15 m)',
+      'plan.courtFutsal': 'Lapangan futsal (20×10 m)',
+      'plan.courtBadminton': 'Lapangan bulu tangkis (13,4×6,1 m)',
+      'plan.courtVolley': 'Lapangan voli (18×9 m)',
+
 
       'sched.eyebrow': 'Schedule',
       'sched.title': 'Pick a date, start time, and duration',
