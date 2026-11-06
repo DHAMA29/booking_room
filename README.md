@@ -1,3 +1,5 @@
+# Gamaspace
+
 
 
 <p align="center">
@@ -82,24 +84,33 @@ flowchart LR
   class E decision
 ```
 
+
 ## Penggunaan AI
 
 AI digunakan untuk membantu analisis kebutuhan, perancangan alur dan data, implementasi UI, pengecekan edge case, pengujian, serta penyusunan dokumentasi. Semua hasil AI ditinjau dan diuji kembali sebelum digunakan.
 
 ## Mulai Cepat
 
-| Akses                                                | Tujuan                 |
-| ---------------------------------------------------- | ---------------------- |
-| [Live demo](https://dhama29.github.io/booking_room/) | Coba aplikasi langsung |
-| `index.html`                                         | Halaman pengguna       |
-| `admin.html`                                         | Panel admin            |
-| `ketentuan.html`                                     | Ketentuan peminjaman   |
+| Akses                                                             | Tujuan                 |
+| ----------------------------------------------------------------- | ---------------------- |
+| [Live demo](https://dhama29.github.io/booking_room/)              | Coba aplikasi langsung |
+| `index.html`                                                      | Halaman pengguna       |
+| [`admin.html`](https://dhama29.github.io/booking_room/admin.html) | Panel admin            |
+| `ketentuan.html`                                                  | Ketentuan peminjaman   |
 
 ```bash
 python3 -m http.server 8000
 ```
 
 Buka `http://localhost:8000/` di browser.
+
+### Login Admin Demo
+
+- **Halaman:** [`/admin.html`](https://dhama29.github.io/booking_room/admin.html)
+- **Email:** `admin@gmail.com`
+- **Password:** `admin12345`
+
+> Kredensial Khusus Juri dengan Hak Tertinggi.
 
 <details>
 <summary><strong>Dokumentasi teknis lengkap</strong></summary>
@@ -528,6 +539,8 @@ Untuk data di Firebase: gunakan Admin Panel (hapus semua pengajuan / reset fasil
 - Fasilitas yang dihapus admin tetap tampil pada riwayat pengajuan lama (pengajuan menyimpan snapshot).
 - Prototipe: daftar admin (`adminEmails` / `/admins`) dan Rules terbuka bersifat sisi-klien — cukup untuk prototipe/tugas; untuk produksi, verifikasi admin di server (Cloud Functions + App Check) dan rapatkan Rules.
 
+## Lisensi
 
+Bebas digunakan untuk tujuan edukasi.
 
 </details>
